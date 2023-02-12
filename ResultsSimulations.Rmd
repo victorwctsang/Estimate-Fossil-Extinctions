@@ -1,0 +1,32 @@
+---
+title: "Simulation Results"
+author: "Victor Tsang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+    fig_width: 5
+    fig_height: 5
+---
+
+```{r}
+RESULTS_PATH <- 'data/simResults.RData'
+load(RESULTS_PATH)
+head(results)
+```
+
+
+### Point Estimates
+
+```{r}
+
+```
+
+
+### Confidence Intervals
+
+```{r}
+
+```
+
