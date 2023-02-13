@@ -10,14 +10,57 @@ output:
     fig_height: 5
 ---
 
-```{r}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load in the results
+
+```{r, warning=FALSE, message=FALSE}
+library(knitr)
+library(tidyverse)
+
+library(gridExtra)
+library(latex2exp)
+
+load("data/synthetic-data.RData")
+attach(synthetic.data.config)
+
 RESULTS_PATH <- 'data/simResults.RData'
 load(RESULTS_PATH)
+
 head(results)
+```
+
+```{r}
+results %>%
+  group_by(method, error_factor) %>%
+  summarise(point.pct_na = sum(is.na(point))/n(),
+            lower.pct_na = sum(is.na(lower))/n(),
+            upper.pct_na = sum(is.na(upper))/n())
+```
+
+
+#### Some Extra columns
+
+```{r}
+
 ```
 
 
 ### Point Estimates
+
+```{r}
+performance.point <- results %>%
+  filter(!is.na(point)) %>%
+  group_by(error_factor, method) %>%
+  summarise(MSE_000 = mean((point - theta.true)^2)/1000,
+            bias = mean(point)-theta.true,
+            variance_000 = var(point)/1000,
+            avg_runtime = round(mean(point_runtime), 5))
+
+performance.point
+```
 
 ```{r}
 
@@ -27,6 +70,72 @@ head(results)
 ### Confidence Intervals
 
 ```{r}
+performance.CI <- results %>%
+  filter(!is.na(conf_int_runtime)) %>%
+  mutate(width = upper - lower,
+         contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
+  group_by(error_factor, method) %>%
+  summarise(Coverage = round(mean(contains_theta) * 100, 1),
+            `Average Width` = round(mean(width), 2),
+            `Average Runtime` = round(mean(conf_int_runtime), 5)) %>%
+  ungroup() %>%
+  arrange(method, error_factor)
 
+performance.CI
 ```
 
+```{r}
+performance.CI.long <- performance.CI %>%
+  rename(Error = error_factor, Method = method, Width = `Average Width`, Runtime = `Average Runtime`) %>%
+  pivot_longer(cols=c(Coverage, Width, Runtime),
+               names_to = "Metric")
+  
+performance.CI.long
+```
+
+#### Coverage Probability
+
+```{r}
+conf_int.coverage.plot <- performance.CI.long %>%
+  filter(Metric == "Coverage") %>%
+  ggplot(aes(x=Error, y=value, colour=reorder(Method, value, decreasing=T))) +
+  geom_point() +
+  geom_line(linewidth=0.5) +
+  theme_bw() +
+  labs(y = "Years", colour="Method", title="Coverage Probabilities") +
+  scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
+  theme(rect = element_rect(fill = "transparent")) +
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+
+conf_int.coverage.plot
+```
+
+
+```{r}
+conf_int.width.plot <- performance.CI.long %>%
+  filter(Metric == "Width") %>%
+  ggplot(aes(x=Error, y=value, colour=reorder(Method, value, decreasing=T))) +
+  geom_point() +
+  geom_line(linewidth=0.5) +
+  theme_bw() +
+  labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
+  theme(rect = element_rect(fill = "transparent")) +
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+
+conf_int.width.plot
+```
+
+```{r}
+conf_int.runtime.plot <- performance.CI.long %>%
+  filter(Metric == "Runtime") %>%
+  ggplot(aes(x=Error, y=value, colour=reorder(Method, value, decreasing=T))) +
+  geom_point() +
+  geom_line(linewidth=0.5) +
+  theme_bw() +
+  scale_y_continuous(trans=scales::log10_trans()) +
+  labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
+  theme(rect = element_rect(fill = "transparent")) +
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+
+conf_int.runtime.plot
+```
