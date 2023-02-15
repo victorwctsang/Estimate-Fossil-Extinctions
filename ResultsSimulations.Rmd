@@ -5,7 +5,6 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   github_document:
     toc: true
-    toc_depth: 2
     fig_width: 5
     fig_height: 5
 ---
@@ -14,14 +13,26 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Load in the results
+# TL;DR
+
+* MINMI point estimates aren't as accurate as other methods (MLE, BA-MLE, Strauss) in high measurement error variation scenarios. Possibly due to $\varepsilon < K - \theta$?
+* MINMI point estimates appear to be more biased and also more variable under both $\delta$ and $\varepsilon$ models.
+* As expected, MINMI is much faster than GRIWM.
+* Coverage probability of MINMI is lower than expected in a the $4\sigma$ scenario. Again, possibly related to $\varepsilon < K - \theta$, but unsure.
+
+
+---
+
+#### Load in the results
 
 ```{r, warning=FALSE, message=FALSE}
 library(knitr)
 library(tidyverse)
-
+library(scales)
+library(ggrepel)
 library(gridExtra)
 library(latex2exp)
+
 
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
@@ -40,15 +51,9 @@ results %>%
             upper.pct_na = sum(is.na(upper))/n())
 ```
 
+# Point Estimates
 
-#### Some Extra columns
-
-```{r}
-
-```
-
-
-### Point Estimates
+#### Calculate Metrics
 
 ```{r}
 performance.point <- results %>%
@@ -58,16 +63,101 @@ performance.point <- results %>%
             bias = mean(point)-theta.true,
             variance_000 = var(point)/1000,
             avg_runtime = round(mean(point_runtime), 5))
-
-performance.point
 ```
 
 ```{r}
+performance.point.tbl = vector(mode = "list", length(error_factors))
+
+for (i in 1:length(error_factors)) {
+  performance.point.tbl[[i]] <- performance.point %>%
+    filter(error_factor == error_factors[i]) %>%
+    ungroup() %>%
+    mutate(across(!c(error_factor, method, avg_runtime), round)) %>%
+    mutate(avg_runtime = round(avg_runtime, digits = 5)) %>%
+    arrange(MSE_000)
+}
+
+performance.point.tbl[[1]]
+performance.point.tbl[[2]]
+performance.point.tbl[[3]]
+performance.point.tbl[[4]]
+performance.point.tbl[[5]]
 
 ```
 
+#### Pivot to make plots
 
-### Confidence Intervals
+```{r}
+performance.point.long <- performance.point %>%
+  rename(Error = error_factor, Method = method, Bias = bias, Var_000 = variance_000, Runtime = avg_runtime) %>%
+  pivot_longer(cols=c(MSE_000, Bias, Var_000, Runtime), names_to = "Metric")
+  
+performance.point.long
+```
+
+### Plots
+
+```{r}
+metrics = unique(performance.point.long$Metric)
+performance.point_estimates.plots = lapply(metrics,
+  function(met) {
+    p = ggplot(data = filter(performance.point.long, Metric == met),
+               mapping = aes(x = Error, y = value, colour = reorder(Method, value, decreasing=T))) +
+      geom_line() +
+      geom_point() +
+      theme_bw() +
+      labs(title = paste(met, "by Error"), ylab=NULL, colour = "Method") +
+      theme(rect = element_rect(fill = "transparent")) +
+      scale_color_manual(values = c("MINMI" = "#00BA38",
+                                    "MLE" = "#619CFF",
+                                    "BA-MLE" = "purple",
+                                    "Strauss" = "orange",
+                                    "GRIWM-corrected" = "darkgray",
+                                    "GRIWM" = "maroon"))
+    
+    if (met %in% c("MSE", "Runtime")) {
+      p = p+scale_y_log10(labels = label_comma())
+    }
+    p
+  }
+)
+
+performance.point_estimates.plots[[1]] = performance.point_estimates.plots[[1]] + ylab("000's")
+performance.point_estimates.plots[[2]] = performance.point_estimates.plots[[2]] + ylab("Years")
+performance.point_estimates.plots[[3]] = performance.point_estimates.plots[[3]] + ylab("000's")
+performance.point_estimates.plots[[4]] = performance.point_estimates.plots[[4]] + ylab("Seconds")
+
+performance.point_estimates.plots[[1]]
+performance.point_estimates.plots[[2]]
+performance.point_estimates.plots[[3]]
+performance.point_estimates.plots[[4]]
+```
+
+
+## Commentary
+
+1. MSE:
+    1. MINMI generally produces estimates with similar MSE to the MLE
+    2. MINMI had the worst MSE in $4\sigma$ scenarios and was moderately bad in the $0\sigma$ scenario
+2. Bias:
+    1. MINMI is more biased than everything else
+    2. For some reason, it's substantially more negatively biased in the $4\sigma$ scenario. Possibly related to the $\varepsilon < K - \theta$, meaning our measurement errors are negatively skewed, which "pull" our MINMI estimates downwards?
+3. Variance:
+    1. MINMI estimates generally have more variance than the other methods, likely due to it accounting for both sampling and measurement error.
+    2. **Question: Why do we have greater bias and greater variance? Seems counterintuitive considering that it's common to see a bias-variance tradeoff.**
+4. Runtime:
+    1. $\delta$ model: MINMI is comparable to BA-MLE, Strauss, and MLE and is 10,000 times faster than GRIWM.
+    2. In $\varepsilon$ model: MINMI is faster than GRIWM by ~10x
+
+```{r fig.width=15}
+performance.point_estimates.plot.grid = do.call(grid.arrange, performance.point_estimates.plots)
+performance.point_estimates.plot.grid
+```
+
+
+# Confidence Intervals
+
+#### Calculate Metrics and Pivot
 
 ```{r}
 performance.CI <- results %>%
@@ -81,10 +171,6 @@ performance.CI <- results %>%
   ungroup() %>%
   arrange(method, error_factor)
 
-performance.CI
-```
-
-```{r}
 performance.CI.long <- performance.CI %>%
   rename(Error = error_factor, Method = method, Width = `Average Width`, Runtime = `Average Runtime`) %>%
   pivot_longer(cols=c(Coverage, Width, Runtime),
@@ -93,7 +179,7 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
-#### Coverage Probability
+## Coverage Probability
 
 ```{r}
 conf_int.coverage.plot <- performance.CI.long %>%
@@ -101,6 +187,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   ggplot(aes(x=Error, y=value, colour=reorder(Method, value, decreasing=T))) +
   geom_point() +
   geom_line(linewidth=0.5) +
+  geom_label_repel(aes(label = value)) +
   theme_bw() +
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
@@ -110,6 +197,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
 conf_int.coverage.plot
 ```
 
+## Widths
 
 ```{r}
 conf_int.width.plot <- performance.CI.long %>%
@@ -125,6 +213,8 @@ conf_int.width.plot <- performance.CI.long %>%
 conf_int.width.plot
 ```
 
+## Runtime
+
 ```{r}
 conf_int.runtime.plot <- performance.CI.long %>%
   filter(Metric == "Runtime") %>%
@@ -139,3 +229,38 @@ conf_int.runtime.plot <- performance.CI.long %>%
 
 conf_int.runtime.plot
 ```
+
+## Commentary
+
+1. Coverage Probability:
+    1. MINMI generally has better coverage probability than GRIWM
+    2. In $4\sigma$ scenario, MINMI's coverage probability drops off --- **why?!**. Possibly due to the negative skewed nature of the measurement errors ($\varepsilon < K - \theta$)?
+2. Confidence Interval Widths:
+    1. MINMI has consistently wider CI's than GRIWM --- it more accurately represents the uncertainty associated with our estimates, especially as measurement error gets large.
+3. Runtime
+    1. Similar to point estimates - MINMI consistently outperforms everything else.
+  
+#### Bonus: measurement error variation relative to our sampling error variation?
+
+```{r}
+pct_sigma_sampling <- 4*fossil.sd / (K-theta.true)
+
+tibble(index = 1:n.samples, pct_sigma_sampling) %>%
+  mutate(label = ifelse(pct_sigma_sampling > 0.3, percent(pct_sigma_sampling), "")) %>%
+  ggplot(aes(x=index, y=pct_sigma_sampling)) +
+  geom_point() +
+  geom_label_repel(aes(label=label)) + 
+  labs(x = 'Sample Index', y = '% of K - theta', title="Measurement Error Variation Relative to Sample Error Variation", subtitle = "(4sigma scenario)") +
+  scale_y_continuous(labels = percent_format())
+```
+
+```{r}
+tibble(index = 1:n.samples, pct_sigma_sampling) %>%
+  ggplot(aes(x=pct_sigma_sampling)) +
+  geom_histogram(binwidth=0.05) +
+  scale_x_continuous(labels = percent_format())
+  
+```
+
+Under $4\sigma$ scenario, we have a right skewed distribution. Our fossils are mostly <30% of $K-\theta$,  but we do get some samples with super large measurement error variation. Perhaps these cause problems?
+
