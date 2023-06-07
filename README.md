@@ -6,3 +6,5 @@ Companion code to a paper about estimating fossil extinctions. Contains all data
 
 TODO
 
+**MOST OF THE FILES IN THIS REPO HAS BEEN RIPPED FROM THE THESIS.**
+
