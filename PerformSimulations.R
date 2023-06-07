@@ -13,17 +13,17 @@ attach(synthetic.data.config)
 alpha = 0.05
 
 methods.point_estimates = c(
-  "Strauss",
-  "MLE",
-  "BA-MLE"
+  # "Strauss"
+  # ,"MLE"
+  # ,"BA-MLE"
 )
 methods.conf_int = c(
-  "MINMI",
-  "GRIWM",
-  "GRIWM-corrected"
+  "MINMI"
+  # ,"GRIWM"
+  # ,"GRIWM-corrected"
 )
 
-RESULTS_PATH = "data/simResults.RData"
+RESULTS_PATH = paste0("data/simResults-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
 results = data.frame(
   error_factor=double(),

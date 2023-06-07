@@ -1,12 +1,15 @@
 # Simulation Experiments
 # Generate synthetic datasets for simulation experiments
 
+
+#### Setup
 library(tidyverse)
 library(readxl)
 
 source("helpers-simulation-experiments.R")
 
-options(nwarnings = 10000) 
+options(nwarnings = 10000)
+SYNTH_DATA_PATH = paste0("data/synthetic-data-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
 # Configure synthetic data generation
 synthetic.data.config <- list(
@@ -35,4 +38,4 @@ attach(synthetic.data.config)
 datasets <- simulate_datasets(synthetic.data.config)
 
 # Export config and datasets
-save(synthetic.data.config, datasets, file = "data/synthetic-data.RData")
+save(synthetic.data.config, datasets, file = SYNTH_DATA_PATH)

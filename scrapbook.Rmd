@@ -1,0 +1,74 @@
+---
+title: "Scrapbook"
+author: "Victor Tsang (z5209633)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Recreating MINMI errors during simulation trials
+
+Previously generated synthetic data is kept in `data/synthetic-data.RData`. There are two objects:
+
+- `synthetic.data.config`: these are the constants used to generate the synthetic data.
+- `datasets`: these are the synthetic datasets. For each dataset, there is a fossil record W with $n = $ `n.samples` and the error factor used. All datasets used the same set of $\sigma$'s, which are stored in `synthetic.data.config` as `fossil.sd`
+
+```{r}
+load("data/synthetic-data.RData")
+
+synthetic.data.config
+```
+
+```{r}
+head(datasets)
+```
+
+
+Example that works
+
+```{r}
+idx <- 3
+W = as.numeric(datasets[idx, ]$W[[1]])
+error_factor = as.numeric(datasets[idx, ]$error_factor[[1]])
+s = synthetic.data.config$fossil.sd * error_factor
+
+
+head(cbind(W, s, error_factor))
+```
+
+```{r}
+rminmi::minmi(ages = W,
+              sd = s,
+              K = synthetic.data.config$K,
+              alpha = 0.05
+              # Don't give any additional tuning parameters for the Monte Carlo estimates
+              # B = NA, A = NA, .B_init = NA
+)
+```
+
+
+Example that doesnt work
+
+```{r}
+idx <- 310
+W = as.numeric(datasets[idx, ]$W[[1]])
+error_factor = as.numeric(datasets[idx, ]$error_factor[[1]])
+s = synthetic.data.config$fossil.sd * error_factor
+
+
+head(cbind(W, s, error_factor))
+```
+
+```{r}
+rminmi::minmi(ages = W,
+              sd = s,
+              K = synthetic.data.config$K,
+              alpha = 0.05
+              # Don't give any additional tuning parameters for the Monte Carlo estimates
+              # B = NA, A = NA, .B_init = NA
+)
+```
