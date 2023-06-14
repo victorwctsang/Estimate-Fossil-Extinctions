@@ -49,8 +49,8 @@ A = 0.2 * (mean(fossil.sd)) ^ 2
 log_info("Performing Simulations")
 
 start_time = Sys.time()
-for (i in 1:100) {
-#for (i in 1:nrow(datasets)) {
+#for (i in 1:100) {
+for (i in 1:nrow(datasets)) {
   log_info(sprintf("Dataset: %i/%i", i, nrow(datasets)))
   iter = datasets[i, ]
   W = as.numeric(iter$W[[1]])
