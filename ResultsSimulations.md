@@ -57,16 +57,16 @@ head(results)
 ```
 
     ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
-    ## 1          0.0  MINMI 14312.97 14934.48 15068.02  9.489059e-05     9.489059e-05
-    ## 2          0.0   UNci 14684.29 15073.05 15073.05  1.348789e-01     1.348789e-01
-    ## 3          0.5  MINMI 14335.93 14981.49 15444.01  7.917905e-02     7.917905e-02
-    ## 4          0.5   UNci 14522.90 14999.20 15184.93  5.947304e-02     5.947304e-02
-    ## 5          1.0  MINMI 14098.05 14829.92 15812.75  8.592701e-02     8.592701e-02
-    ## 6          1.0   UNci 14344.70 14950.77 15195.59  4.842782e-02     4.842782e-02
+    ## 1          0.0  MINMI 14312.97 14934.48 15068.02  8.392334e-05     8.392334e-05
+    ## 2          0.0   UNci 14684.29 15073.05 15073.05  3.243995e-02     3.243995e-02
+    ## 3          0.5  MINMI 14339.76 14984.56 15455.39  8.021498e-02     8.021498e-02
+    ## 4          0.5   UNci 14523.09 14999.31 15184.99  5.695987e-02     5.695987e-02
+    ## 5          1.0  MINMI 14089.58 14823.23 15792.84  8.206701e-02     8.206701e-02
+    ## 6          1.0   UNci 14344.55 14950.85 15195.65  5.069685e-02     5.069685e-02
     ##   B.lower B.point B.upper
     ## 1      NA      NA      NA
     ## 2     100     100     100
-    ## 3     102     100     100
+    ## 3     103     100     100
     ## 4     100     100     100
     ## 5     100     100     100
     ## 6     100     100     100
@@ -89,8 +89,8 @@ results %>%
     ##  1 MINMI           0         14959.       14339.       15092.
     ##  2 MINMI           0.5       14889.       14239.       15355.
     ##  3 MINMI           1         14768.       14032.       15748.
-    ##  4 MINMI           2         14554.       13556.       16695.
-    ##  5 MINMI           4         13921.       12212.       18682.
+    ##  4 MINMI           2         14554.       13556.       16693.
+    ##  5 MINMI           4         13921.       12213.       18689.
     ##  6 UNci            0         15097.       14709.       15097.
     ##  7 UNci            0.5       14961.       14434.       15192.
     ##  8 UNci            1         14874.       14223.       15211.
@@ -132,8 +132,8 @@ performance.point.tbl[[1]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI       11   -41            9     0.00008
-    ## 2            0 UNci        18    97            9     0.00581
+    ## 1            0 MINMI       11   -41            9     0.0001 
+    ## 2            0 UNci        18    97            9     0.00864
 
 ``` r
 performance.point.tbl[[2]]
@@ -142,8 +142,8 @@ performance.point.tbl[[2]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 UNci        24   -39           22      0.0538
-    ## 2          0.5 MINMI       50  -111           38      0.0964
+    ## 1          0.5 UNci        24   -39           22      0.0732
+    ## 2          0.5 MINMI       50  -111           38      0.115
 
 ``` r
 performance.point.tbl[[3]]
@@ -152,8 +152,8 @@ performance.point.tbl[[3]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 UNci        52  -126           36      0.0582
-    ## 2            1 MINMI      226  -232          173      0.0971
+    ## 1            1 UNci        52  -126           36      0.0764
+    ## 2            1 MINMI      226  -232          173      0.117
 
 ``` r
 performance.point.tbl[[4]]
@@ -162,8 +162,8 @@ performance.point.tbl[[4]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 UNci       146  -286           64      0.0626
-    ## 2            2 MINMI      709  -446          510      0.112
+    ## 1            2 UNci       146  -286           64      0.0820
+    ## 2            2 MINMI      709  -446          510      0.133
 
 ``` r
 performance.point.tbl[[5]]
@@ -172,8 +172,8 @@ performance.point.tbl[[5]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 UNci      1022  -704          527      0.0631
-    ## 2            4 MINMI     4471 -1079         3310      0.118
+    ## 1            4 UNci      1022  -704          527      0.0840
+    ## 2            4 MINMI     4471 -1079         3310      0.143
 
 #### Pivot to make plots
 
@@ -192,12 +192,12 @@ performance.point.long
     ##  1   0   MINMI  MSE_000   10.7    
     ##  2   0   MINMI  Bias     -41.3    
     ##  3   0   MINMI  Var_000    8.96   
-    ##  4   0   MINMI  Runtime    0.00008
+    ##  4   0   MINMI  Runtime    0.0001 
     ##  5   0   UNci   MSE_000   18.1    
     ##  6   0   UNci   Bias      96.9    
     ##  7   0   UNci   Var_000    8.71   
-    ##  8   0   UNci   Runtime    0.00581
-    ##  9   0.5 MINMI  MSE_000   50.1    
+    ##  8   0   UNci   Runtime    0.00864
+    ##  9   0.5 MINMI  MSE_000   50.0    
     ## 10   0.5 MINMI  Bias    -111.     
     ## # … with 30 more rows
 
@@ -337,18 +337,18 @@ performance.CI.long
 ```
 
     ## # A tibble: 30 × 4
-    ##    Error Method Metric        value
-    ##    <dbl> <chr>  <chr>         <dbl>
-    ##  1   0   MINMI  Coverage   95.6    
-    ##  2   0   MINMI  Width     753.     
-    ##  3   0   MINMI  Runtime     0.00008
-    ##  4   0.5 MINMI  Coverage   95.4    
-    ##  5   0.5 MINMI  Width    1116.     
-    ##  6   0.5 MINMI  Runtime     0.0964 
-    ##  7   1   MINMI  Coverage   95.4    
-    ##  8   1   MINMI  Width    1716.     
-    ##  9   1   MINMI  Runtime     0.0971 
-    ## 10   2   MINMI  Coverage   97.1    
+    ##    Error Method Metric       value
+    ##    <dbl> <chr>  <chr>        <dbl>
+    ##  1   0   MINMI  Coverage   95.6   
+    ##  2   0   MINMI  Width     753.    
+    ##  3   0   MINMI  Runtime     0.0001
+    ##  4   0.5 MINMI  Coverage   95.4   
+    ##  5   0.5 MINMI  Width    1116.    
+    ##  6   0.5 MINMI  Runtime     0.115 
+    ##  7   1   MINMI  Coverage   95.5   
+    ##  8   1   MINMI  Width    1715.    
+    ##  9   1   MINMI  Runtime     0.117 
+    ## 10   2   MINMI  Coverage   97.2   
     ## # … with 20 more rows
 
 ## Coverage Probability
@@ -470,3 +470,32 @@ scenario, we have a right skewed distribution. Our fossils are mostly
 ![K-\theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;K-%5Ctheta "K-\theta"),
 but we do get some samples with super large measurement error variation.
 Perhaps these cause problems?
+
+#### Extra bonus: is the sampling distribution of MLE Gaussian for ![\sigma\>0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csigma%3E0 "\sigma>0")?
+
+``` r
+errors=unique(results$error_factor)
+nError=length(errors)
+par(mfrow=c(5,3),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
+for(iError in 1:nError)
+{
+  tmp=results%>%filter(method=="UNci" & error_factor==errors[iError]) %>% select(lower,point,upper)
+  hist(tmp$lower,xlab="theta_lower",ylab="",main="")
+  mtext(paste0("error_fac=",errors[iError]),2,line=2,font=2,cex=0.8)
+  if(iError==1)
+    mtext("theta_lower",3,font=2,cex=0.8)
+  hist(tmp$point,xlab="theta_hat",ylab="",main="")
+  if(iError==1)
+    mtext("theta_hat",3,font=2)
+  hist(tmp$point,xlab="theta_upper",ylab="",main="")
+  if(iError==1)
+    mtext("theta_upper",3,font=2)
+}
+```
+
+![](ResultsSimulations_files/figure-gfm/distTheta-1.png)<!-- -->
+
+Um, yes! Not at , as expected, because this is a sample minimum.
+
+Quantiles also seem to be approx normal with no outliers (except at
+where it looks like there is some non-convergence).

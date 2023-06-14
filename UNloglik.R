@@ -38,9 +38,9 @@ getLRT = function(theta0,thetaMLE,ages, sd, K, alpha=0.05, B=100, u=matrix(runif
 getUNci = function(theta, ages, sd, K, alpha=0.05, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
   thetaMLE = getTheta(theta, ages, sd, K, u=u)
-  lo = try( uniroot(getLRT,thetaMLE$par*c(0.6,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
+  lo = try( uniroot(getLRT,thetaMLE$par*c(0.25,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
   if(inherits(lo,"try-error")) lo=list(root=thetaMLE$par)
-  hi = try( uniroot(getLRT,thetaMLE$par*c(1,1.1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
+  hi = try( uniroot(getLRT,thetaMLE$par*c(1,1.25),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
   if(inherits(hi,"try-error")) hi=list(root=thetaMLE$par)
   return( list(theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root),B=c(lower=B,point=B,upper=B)) )
 }

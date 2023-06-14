@@ -265,3 +265,28 @@ tibble(index = 1:n.samples, pct_sigma_sampling) %>%
 
 Under $4\sigma$ scenario, we have a right skewed distribution. Our fossils are mostly <30% of $K-\theta$,  but we do get some samples with super large measurement error variation. Perhaps these cause problems?
 
+#### Extra bonus: is the sampling distribution of MLE Gaussian for $\sigma>0$?
+
+```{r distTheta}
+errors=unique(results$error_factor)
+nError=length(errors)
+par(mfrow=c(5,3),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
+for(iError in 1:nError)
+{
+  tmp=results%>%filter(method=="UNci" & error_factor==errors[iError]) %>% select(lower,point,upper)
+  hist(tmp$lower,xlab="theta_lower",ylab="",main="")
+  mtext(paste0("error_fac=",errors[iError]),2,line=2,font=2,cex=0.8)
+  if(iError==1)
+    mtext("theta_lower",3,font=2,cex=0.8)
+  hist(tmp$point,xlab="theta_hat",ylab="",main="")
+  if(iError==1)
+    mtext("theta_hat",3,font=2)
+  hist(tmp$point,xlab="theta_upper",ylab="",main="")
+  if(iError==1)
+    mtext("theta_upper",3,font=2)
+}
+```
+
+Um, yes! Not at `r error_factor=0`, as expected, because this is a sample minimum.
+
+Quantiles also seem to be approx normal with no outliers (except at `r error_factor=4` where it looks like there is some non-convergence).
