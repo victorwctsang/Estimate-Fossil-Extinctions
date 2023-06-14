@@ -197,7 +197,7 @@ do_UNci = function (theta, ages, sd, K, alpha) {
   
   results = tryCatch(
     {
-      getUNci(0.8*theta, ages, sd, K, alpha=alpha)
+      getUNci(min(ages), ages, sd, K, alpha=alpha)
     },
     error = function(cond) {
       message("Something went wrong with `getUNci`:")

@@ -57,16 +57,16 @@ head(results)
 ```
 
     ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
-    ## 1          0.0  MINMI 14695.81 15004.28 15070.56  7.200241e-05     7.200241e-05
-    ## 2          0.0   UNci      NaN 15073.05      NaN  3.168583e-02     3.168583e-02
-    ## 3          0.5  MINMI 14723.47 15080.38 15574.48  8.158398e-02     8.158398e-02
-    ## 4          0.5   UNci 14779.61 15057.94      NaN  3.826189e-02     3.826189e-02
-    ## 5          1.0  MINMI 14488.75 14979.79 16046.21  1.016340e-01     1.016340e-01
-    ## 6          1.0   UNci 14712.66 15051.98      NaN  4.627395e-02     4.627395e-02
+    ## 1          0.0  MINMI 14312.97 14934.48 15068.02  9.489059e-05     9.489059e-05
+    ## 2          0.0   UNci 14684.29 15073.05 15073.05  1.348789e-01     1.348789e-01
+    ## 3          0.5  MINMI 14335.93 14981.49 15444.01  7.917905e-02     7.917905e-02
+    ## 4          0.5   UNci 14522.90 14999.20 15184.93  5.947304e-02     5.947304e-02
+    ## 5          1.0  MINMI 14098.05 14829.92 15812.75  8.592701e-02     8.592701e-02
+    ## 6          1.0   UNci 14344.70 14950.77 15195.59  4.842782e-02     4.842782e-02
     ##   B.lower B.point B.upper
     ## 1      NA      NA      NA
     ## 2     100     100     100
-    ## 3     100     100     100
+    ## 3     102     100     100
     ## 4     100     100     100
     ## 5     100     100     100
     ## 6     100     100     100
@@ -86,16 +86,16 @@ results %>%
     ## # Groups:   method [2]
     ##    method error_factor point.pct_na lower.pct_na upper.pct_na
     ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 MINMI           0         15014.       14706.       15080.
-    ##  2 MINMI           0.5       14974.       14611.       15459.
-    ##  3 MINMI           1         15034.       14545.       16111.
-    ##  4 MINMI           2         14813.       13966.       17218.
-    ##  5 MINMI           4         13908.       12172.       20668.
-    ##  6 UNci            0         15083.         NaN          NaN 
-    ##  7 UNci            0.5       15052.       14737.         NaN 
-    ##  8 UNci            1         15070.       14690.         NaN 
-    ##  9 UNci            2         15033.       14485.         NaN 
-    ## 10 UNci            4         15058.       14270.         NaN
+    ##  1 MINMI           0         14959.       14339.       15092.
+    ##  2 MINMI           0.5       14889.       14239.       15355.
+    ##  3 MINMI           1         14768.       14032.       15748.
+    ##  4 MINMI           2         14554.       13556.       16695.
+    ##  5 MINMI           4         13921.       12212.       18682.
+    ##  6 UNci            0         15097.       14709.       15097.
+    ##  7 UNci            0.5       14961.       14434.       15192.
+    ##  8 UNci            1         14874.       14223.       15211.
+    ##  9 UNci            2         14714.       13855.       15233.
+    ## 10 UNci            4         14296.       13130.       15159.
 
 # Point Estimates
 
@@ -132,8 +132,8 @@ performance.point.tbl[[1]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI        8    14            8     0.00006
-    ## 2            0 UNci        15    83            8     0.00519
+    ## 1            0 MINMI       11   -41            9     0.00008
+    ## 2            0 UNci        18    97            9     0.00581
 
 ``` r
 performance.point.tbl[[2]]
@@ -142,8 +142,8 @@ performance.point.tbl[[2]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 UNci        19    52           17      0.0337
-    ## 2          0.5 MINMI       29   -26           30      0.0896
+    ## 1          0.5 UNci        24   -39           22      0.0538
+    ## 2          0.5 MINMI       50  -111           38      0.0964
 
 ``` r
 performance.point.tbl[[3]]
@@ -152,8 +152,8 @@ performance.point.tbl[[3]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 UNci        44    70           41      0.0373
-    ## 2            1 MINMI       61    34           63      0.0946
+    ## 1            1 UNci        52  -126           36      0.0582
+    ## 2            1 MINMI      226  -232          173      0.0971
 
 ``` r
 performance.point.tbl[[4]]
@@ -162,8 +162,8 @@ performance.point.tbl[[4]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 UNci        48    33           49      0.0394
-    ## 2            2 MINMI      599  -187          594      0.100
+    ## 1            2 UNci       146  -286           64      0.0626
+    ## 2            2 MINMI      709  -446          510      0.112
 
 ``` r
 performance.point.tbl[[5]]
@@ -172,8 +172,8 @@ performance.point.tbl[[5]]
     ## # A tibble: 2 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 UNci       155    58          160      0.0419
-    ## 2            4 MINMI    13354 -1092        12802      0.109
+    ## 1            4 UNci      1022  -704          527      0.0631
+    ## 2            4 MINMI     4471 -1079         3310      0.118
 
 #### Pivot to make plots
 
@@ -187,18 +187,18 @@ performance.point.long
 
     ## # A tibble: 40 × 4
     ## # Groups:   Error [5]
-    ##    Error Method Metric      value
-    ##    <dbl> <chr>  <chr>       <dbl>
-    ##  1   0   MINMI  MSE_000   8.18   
-    ##  2   0   MINMI  Bias     14.3    
-    ##  3   0   MINMI  Var_000   8.40   
-    ##  4   0   MINMI  Runtime   0.00006
-    ##  5   0   UNci   MSE_000  14.6    
-    ##  6   0   UNci   Bias     83.0    
-    ##  7   0   UNci   Var_000   8.17   
-    ##  8   0   UNci   Runtime   0.00519
-    ##  9   0.5 MINMI  MSE_000  28.9    
-    ## 10   0.5 MINMI  Bias    -25.9    
+    ##    Error Method Metric       value
+    ##    <dbl> <chr>  <chr>        <dbl>
+    ##  1   0   MINMI  MSE_000   10.7    
+    ##  2   0   MINMI  Bias     -41.3    
+    ##  3   0   MINMI  Var_000    8.96   
+    ##  4   0   MINMI  Runtime    0.00008
+    ##  5   0   UNci   MSE_000   18.1    
+    ##  6   0   UNci   Bias      96.9    
+    ##  7   0   UNci   Var_000    8.71   
+    ##  8   0   UNci   Runtime    0.00581
+    ##  9   0.5 MINMI  MSE_000   50.1    
+    ## 10   0.5 MINMI  Bias    -111.     
     ## # … with 30 more rows
 
 ### Plots
@@ -339,16 +339,16 @@ performance.CI.long
     ## # A tibble: 30 × 4
     ##    Error Method Metric        value
     ##    <dbl> <chr>  <chr>         <dbl>
-    ##  1   0   MINMI  Coverage  100      
-    ##  2   0   MINMI  Width     374.     
-    ##  3   0   MINMI  Runtime     0.00006
-    ##  4   0.5 MINMI  Coverage  100      
-    ##  5   0.5 MINMI  Width     848.     
-    ##  6   0.5 MINMI  Runtime     0.0896 
-    ##  7   1   MINMI  Coverage  100      
-    ##  8   1   MINMI  Width    1566.     
-    ##  9   1   MINMI  Runtime     0.0946 
-    ## 10   2   MINMI  Coverage   90      
+    ##  1   0   MINMI  Coverage   95.6    
+    ##  2   0   MINMI  Width     753.     
+    ##  3   0   MINMI  Runtime     0.00008
+    ##  4   0.5 MINMI  Coverage   95.4    
+    ##  5   0.5 MINMI  Width    1116.     
+    ##  6   0.5 MINMI  Runtime     0.0964 
+    ##  7   1   MINMI  Coverage   95.4    
+    ##  8   1   MINMI  Width    1716.     
+    ##  9   1   MINMI  Runtime     0.0971 
+    ## 10   2   MINMI  Coverage   97.1    
     ## # … with 20 more rows
 
 ## Coverage Probability
@@ -364,7 +364,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -372,12 +372,6 @@ conf_int.coverage.plot <- performance.CI.long %>%
 ``` r
 conf_int.coverage.plot
 ```
-
-    ## Warning: Removed 5 rows containing missing values (geom_point).
-
-    ## Warning: Removed 5 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 5 rows containing missing values (geom_label_repel).
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
@@ -392,7 +386,7 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -400,10 +394,6 @@ conf_int.width.plot <- performance.CI.long %>%
 ``` r
 conf_int.width.plot
 ```
-
-    ## Warning: Removed 5 rows containing missing values (geom_point).
-
-    ## Warning: Removed 5 row(s) containing missing values (geom_path).
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
@@ -419,7 +409,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth

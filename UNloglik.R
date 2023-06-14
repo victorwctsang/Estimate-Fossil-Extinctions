@@ -23,7 +23,7 @@ UNloglik = function(theta,ages,sd,K,B=100,u=matrix(runif(B*length(ages)),ncol=B)
 getTheta = function(theta, ages, sd, K, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
   if(all(sd==0))
-    thetaMLE = list( par=min(ages), value=sum(log(1/(K-min(ages)))) )
+    thetaMLE = list( par=min(ages), value=length(ages)*log(1/(K-min(ages))) )
   else
     thetaMLE = optim(theta,UNloglik,ages=ages,sd=sd,K=K,u=u,method="Brent",lower=0*theta,upper=2*theta,control=list(trace=TRUE,fnscale=-1))
 #   thetaMLE = optim(theta,UNloglik,ages=ages,sd=sd,K=K,u=u,method="BFGS",control=list(trace=TRUE,fnscale=-1))
@@ -38,14 +38,14 @@ getLRT = function(theta0,thetaMLE,ages, sd, K, alpha=0.05, B=100, u=matrix(runif
 getUNci = function(theta, ages, sd, K, alpha=0.05, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
   thetaMLE = getTheta(theta, ages, sd, K, u=u)
-  lo = try( uniroot(getLRT,thetaMLE$par*c(0.5,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
+  lo = try( uniroot(getLRT,thetaMLE$par*c(0.6,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
   if(inherits(lo,"try-error")) lo=list(root=thetaMLE$par)
-  hi = try( uniroot(getLRT,thetaMLE$par*c(1,2),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
+  hi = try( uniroot(getLRT,thetaMLE$par*c(1,1.1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
   if(inherits(hi,"try-error")) hi=list(root=thetaMLE$par)
   return( list(theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root),B=c(lower=B,point=B,upper=B)) )
 }
 
-do.test = TRUE
+do.test = FALSE
 if (do.test)
 {
 K=25000
@@ -71,7 +71,7 @@ print(getUNci(theta,ages,sd,K,u=u))
 
 # get LRTs
 nTheta = 100
-thetas=seq(6000,14000,length=nTheta)
+thetas=seq(min(ages)-10*sd[1],min(ages)+0.1*sd[1],length=nTheta)
 LRs = rep(NA,nTheta)
 for (iTheta in 1:nTheta)
   LRs[iTheta] = getLRT(thetas[iTheta],thetaMLE,ages=ages,sd=sd,K=K,u=u)
