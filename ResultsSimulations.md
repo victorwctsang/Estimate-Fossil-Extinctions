@@ -1,7 +1,7 @@
 Simulation Results
 ================
 Victor Tsang
-15 February, 2023
+14 June, 2023
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
@@ -19,13 +19,20 @@ Victor Tsang
 
 - MINMI point estimates aren’t as accurate as other methods (MLE,
   BA-MLE, Strauss) in high measurement error variation scenarios.
-  Possibly due to $\varepsilon < K - \theta$?
+  Possibly due to
+  ![\varepsilon \< K - \theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon%20%3C%20K%20-%20%5Ctheta "\varepsilon < K - \theta")?
 - MINMI point estimates appear to be more biased and also more variable
-  under both $\delta$ and $\varepsilon$ models.
+  under both
+  ![\delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cdelta "\delta")
+  and
+  ![\varepsilon](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon "\varepsilon")
+  models.
 - As expected, MINMI is much faster than GRIWM.
 - Coverage probability of MINMI is lower than expected in a the
-  $4\sigma$ scenario. Again, possibly related to
-  $\varepsilon < K - \theta$, but unsure.
+  ![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
+  scenario. Again, possibly related to
+  ![\varepsilon \< K - \theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon%20%3C%20K%20-%20%5Ctheta "\varepsilon < K - \theta"),
+  but unsure.
 
 ------------------------------------------------------------------------
 
@@ -43,53 +50,52 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults.RData'
+RESULTS_PATH <- 'data/simResults-20230614.RData'
 load(RESULTS_PATH)
 
 head(results)
 ```
 
-    ##   error_factor          method    lower    point    upper point_runtime
-    ## 1            0         Strauss       NA 14973.11       NA  2.193451e-05
-    ## 2            0             MLE       NA 15073.05       NA  1.435041e-03
-    ## 3            0          BA-MLE       NA 14974.51       NA  2.193451e-05
-    ## 4            0           MINMI 14695.81 15004.28 15070.56  2.781296e-02
-    ## 5            0           GRIWM 14779.00 14779.00 14779.00  1.442542e+00
-    ## 6            0 GRIWM-corrected 15004.00 15004.00 15004.00  3.216715e+01
-    ##   conf_int_runtime B.lower B.point B.upper
-    ## 1               NA      NA      NA      NA
-    ## 2               NA      NA      NA      NA
-    ## 3               NA      NA      NA      NA
-    ## 4       0.02781296      NA      NA      NA
-    ## 5       1.44254208      NA      NA      NA
-    ## 6      32.16714787      NA      NA      NA
+    ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
+    ## 1          0.0  MINMI 14695.81 15004.28 15070.56  7.200241e-05     7.200241e-05
+    ## 2          0.0   UNci      NaN 15073.05      NaN  3.168583e-02     3.168583e-02
+    ## 3          0.5  MINMI 14723.47 15080.38 15574.48  8.158398e-02     8.158398e-02
+    ## 4          0.5   UNci 14779.61 15057.94      NaN  3.826189e-02     3.826189e-02
+    ## 5          1.0  MINMI 14488.75 14979.79 16046.21  1.016340e-01     1.016340e-01
+    ## 6          1.0   UNci 14712.66 15051.98      NaN  4.627395e-02     4.627395e-02
+    ##   B.lower B.point B.upper
+    ## 1      NA      NA      NA
+    ## 2     100     100     100
+    ## 3     100     100     100
+    ## 4     100     100     100
+    ## 5     100     100     100
+    ## 6     100     100     100
 
 ``` r
 results %>%
   group_by(method, error_factor) %>%
-  summarise(point.pct_na = sum(is.na(point))/n(),
-            lower.pct_na = sum(is.na(lower))/n(),
-            upper.pct_na = sum(is.na(upper))/n())
+  summarise(point.pct_na = mean(point,na.rm=TRUE),
+            lower.pct_na = mean(lower,na.rm=TRUE),
+            upper.pct_na = mean(upper,na.rm=TRUE))
 ```
 
     ## `summarise()` has grouped output by 'method'. You can override using the
     ## `.groups` argument.
 
-    ## # A tibble: 30 × 5
-    ## # Groups:   method [6]
+    ## # A tibble: 10 × 5
+    ## # Groups:   method [2]
     ##    method error_factor point.pct_na lower.pct_na upper.pct_na
     ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 BA-MLE          0              0            1            1
-    ##  2 BA-MLE          0.5            0            1            1
-    ##  3 BA-MLE          1              0            1            1
-    ##  4 BA-MLE          2              0            1            1
-    ##  5 BA-MLE          4              0            1            1
-    ##  6 GRIWM           0              0            0            0
-    ##  7 GRIWM           0.5            0            0            0
-    ##  8 GRIWM           1              0            0            0
-    ##  9 GRIWM           2              0            0            0
-    ## 10 GRIWM           4              0            0            0
-    ## # … with 20 more rows
+    ##  1 MINMI           0         15014.       14706.       15080.
+    ##  2 MINMI           0.5       14974.       14611.       15459.
+    ##  3 MINMI           1         15034.       14545.       16111.
+    ##  4 MINMI           2         14813.       13966.       17218.
+    ##  5 MINMI           4         13908.       12172.       20668.
+    ##  6 UNci            0         15083.         NaN          NaN 
+    ##  7 UNci            0.5       15052.       14737.         NaN 
+    ##  8 UNci            1         15070.       14690.         NaN 
+    ##  9 UNci            2         15033.       14485.         NaN 
+    ## 10 UNci            4         15058.       14270.         NaN
 
 # Point Estimates
 
@@ -99,10 +105,10 @@ results %>%
 performance.point <- results %>%
   filter(!is.na(point)) %>%
   group_by(error_factor, method) %>%
-  summarise(MSE_000 = mean((point - theta.true)^2)/1000,
-            bias = mean(point)-theta.true,
-            variance_000 = var(point)/1000,
-            avg_runtime = round(mean(point_runtime), 5))
+  summarise(MSE_000 = mean((point - theta.true)^2,na.rm=TRUE)/1000,
+            bias = mean(point,na.rm=TRUE)-theta.true,
+            variance_000 = var(point,na.rm=TRUE)/1000,
+            avg_runtime = round(mean(point_runtime,na.rm=TRUE), 5))
 ```
 
     ## `summarise()` has grouped output by 'error_factor'. You can override using the
@@ -123,71 +129,51 @@ for (i in 1:length(error_factors)) {
 performance.point.tbl[[1]]
 ```
 
-    ## # A tibble: 6 × 6
-    ##   error_factor method          MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>             <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 BA-MLE                9    -1            9     0.00002
-    ## 2            0 Strauss               9    -1            9     0.00002
-    ## 3            0 GRIWM-corrected      10    28            9    56.0    
-    ## 4            0 MINMI                10    28            9     0.0001 
-    ## 5            0 MLE                  18    97            9     0.00002
-    ## 6            0 GRIWM                48  -195           10     1.11
+    ## # A tibble: 2 × 6
+    ##   error_factor method MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            0 MINMI        8    14            8     0.00006
+    ## 2            0 UNci        15    83            8     0.00519
 
 ``` r
 performance.point.tbl[[2]]
 ```
 
-    ## # A tibble: 6 × 6
-    ##   error_factor method          MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>             <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 MLE                  37     6           37     0.00001
-    ## 2          0.5 MINMI                38   -14           38     0.114  
-    ## 3          0.5 GRIWM-corrected      42   -64           38    30.6    
-    ## 4          0.5 BA-MLE               47   -94           38     0.00002
-    ## 5          0.5 Strauss              47   -94           38     0.00002
-    ## 6          0.5 GRIWM               126  -291           41     1.12
+    ## # A tibble: 2 × 6
+    ##   error_factor method MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
+    ## 1          0.5 UNci        19    52           17      0.0337
+    ## 2          0.5 MINMI       29   -26           30      0.0896
 
 ``` r
 performance.point.tbl[[3]]
 ```
 
-    ## # A tibble: 6 × 6
-    ##   error_factor method          MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>             <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 MINMI               184   -77          179     0.130  
-    ## 2            1 MLE                 199  -186          165     0.00001
-    ## 3            1 GRIWM-corrected     236  -258          170    30.9    
-    ## 4            1 BA-MLE              255  -290          172     0.00002
-    ## 5            1 Strauss             256  -290          172     0.00002
-    ## 6            1 GRIWM               430  -495          185     1.13
+    ## # A tibble: 2 × 6
+    ##   error_factor method MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            1 UNci        44    70           41      0.0373
+    ## 2            1 MINMI       61    34           63      0.0946
 
 ``` r
 performance.point.tbl[[4]]
 ```
 
-    ## # A tibble: 6 × 6
-    ##   error_factor method          MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>             <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 MINMI               568  -155          545     0.139  
-    ## 2            2 MLE                 895  -652          471     0.00001
-    ## 3            2 GRIWM-corrected    1018  -731          484    31.0    
-    ## 4            2 BA-MLE             1075  -765          490     0.00002
-    ## 5            2 Strauss            1076  -766          490     0.00002
-    ## 6            2 GRIWM              1506  -989          529     1.12
+    ## # A tibble: 2 × 6
+    ##   error_factor method MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            2 UNci        48    33           49      0.0394
+    ## 2            2 MINMI      599  -187          594      0.100
 
 ``` r
 performance.point.tbl[[5]]
 ```
 
-    ## # A tibble: 6 × 6
-    ##   error_factor method          MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>             <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 MLE                6976 -2019         2903     0.00002
-    ## 2            4 GRIWM-corrected    7463 -2117         2986    31.1    
-    ## 3            4 BA-MLE             7680 -2159         3020     0.00002
-    ## 4            4 Strauss            7687 -2160         3022     0.00002
-    ## 5            4 GRIWM              9200 -2438         3261     1.12   
-    ## 6            4 MINMI             14574 -3202         4342     0.144
+    ## # A tibble: 2 × 6
+    ##   error_factor method MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            4 UNci       155    58          160      0.0419
+    ## 2            4 MINMI    13354 -1092        12802      0.109
 
 #### Pivot to make plots
 
@@ -199,21 +185,21 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
-    ## # A tibble: 120 × 4
+    ## # A tibble: 40 × 4
     ## # Groups:   Error [5]
-    ##    Error Method          Metric       value
-    ##    <dbl> <chr>           <chr>        <dbl>
-    ##  1     0 BA-MLE          MSE_000    9.06   
-    ##  2     0 BA-MLE          Bias      -1.14   
-    ##  3     0 BA-MLE          Var_000    9.06   
-    ##  4     0 BA-MLE          Runtime    0.00002
-    ##  5     0 GRIWM           MSE_000   47.9    
-    ##  6     0 GRIWM           Bias    -195.     
-    ##  7     0 GRIWM           Var_000    9.79   
-    ##  8     0 GRIWM           Runtime    1.11   
-    ##  9     0 GRIWM-corrected MSE_000    9.75   
-    ## 10     0 GRIWM-corrected Bias      28.3    
-    ## # … with 110 more rows
+    ##    Error Method Metric      value
+    ##    <dbl> <chr>  <chr>       <dbl>
+    ##  1   0   MINMI  MSE_000   8.18   
+    ##  2   0   MINMI  Bias     14.3    
+    ##  3   0   MINMI  Var_000   8.40   
+    ##  4   0   MINMI  Runtime   0.00006
+    ##  5   0   UNci   MSE_000  14.6    
+    ##  6   0   UNci   Bias     83.0    
+    ##  7   0   UNci   Var_000   8.17   
+    ##  8   0   UNci   Runtime   0.00519
+    ##  9   0.5 MINMI  MSE_000  28.9    
+    ## 10   0.5 MINMI  Bias    -25.9    
+    ## # … with 30 more rows
 
 ### Plots
 
@@ -233,7 +219,8 @@ performance.point_estimates.plots = lapply(metrics,
                                     "BA-MLE" = "purple",
                                     "Strauss" = "orange",
                                     "GRIWM-corrected" = "darkgray",
-                                    "GRIWM" = "maroon"))
+                                    "GRIWM" = "maroon",
+                                    "UNci" = "darkblue"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -274,14 +261,20 @@ performance.point_estimates.plots[[4]]
 
 1.  MSE:
     1.  MINMI generally produces estimates with similar MSE to the MLE
-    2.  MINMI had the worst MSE in $4\sigma$ scenarios and was
-        moderately bad in the $0\sigma$ scenario
+    2.  MINMI had the worst MSE in
+        ![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
+        scenarios and was moderately bad in the
+        ![0\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;0%5Csigma "0\sigma")
+        scenario
 2.  Bias:
     1.  MINMI is more biased than everything else
     2.  For some reason, it’s substantially more negatively biased in
-        the $4\sigma$ scenario. Possibly related to the
-        $\varepsilon < K - \theta$, meaning our measurement errors are
-        negatively skewed, which “pull” our MINMI estimates downwards?
+        the
+        ![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
+        scenario. Possibly related to the
+        ![\varepsilon \< K - \theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon%20%3C%20K%20-%20%5Ctheta "\varepsilon < K - \theta"),
+        meaning our measurement errors are negatively skewed, which
+        “pull” our MINMI estimates downwards?
 3.  Variance:
     1.  MINMI estimates generally have more variance than the other
         methods, likely due to it accounting for both sampling and
@@ -290,9 +283,12 @@ performance.point_estimates.plots[[4]]
         Seems counterintuitive considering that it’s common to see a
         bias-variance tradeoff.**
 4.  Runtime:
-    1.  $\delta$ model: MINMI is comparable to BA-MLE, Strauss, and MLE
-        and is 10,000 times faster than GRIWM.
-    2.  In $\varepsilon$ model: MINMI is faster than GRIWM by \~10x
+    1.  ![\delta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cdelta "\delta")
+        model: MINMI is comparable to BA-MLE, Strauss, and MLE and is
+        10,000 times faster than GRIWM.
+    2.  In
+        ![\varepsilon](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon "\varepsilon")
+        model: MINMI is faster than GRIWM by \~10x
 
 ``` r
 performance.point_estimates.plot.grid = do.call(grid.arrange, performance.point_estimates.plots)
@@ -340,20 +336,20 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
-    ## # A tibble: 45 × 4
-    ##    Error Method Metric     value
-    ##    <dbl> <chr>  <chr>      <dbl>
-    ##  1   0   GRIWM  Coverage    0   
-    ##  2   0   GRIWM  Width       0   
-    ##  3   0   GRIWM  Runtime     1.11
-    ##  4   0.5 GRIWM  Coverage   43.8 
-    ##  5   0.5 GRIWM  Width     505.  
-    ##  6   0.5 GRIWM  Runtime     1.12
-    ##  7   1   GRIWM  Coverage   62.7 
-    ##  8   1   GRIWM  Width    1010.  
-    ##  9   1   GRIWM  Runtime     1.13
-    ## 10   2   GRIWM  Coverage   59.6 
-    ## # … with 35 more rows
+    ## # A tibble: 30 × 4
+    ##    Error Method Metric        value
+    ##    <dbl> <chr>  <chr>         <dbl>
+    ##  1   0   MINMI  Coverage  100      
+    ##  2   0   MINMI  Width     374.     
+    ##  3   0   MINMI  Runtime     0.00006
+    ##  4   0.5 MINMI  Coverage  100      
+    ##  5   0.5 MINMI  Width     848.     
+    ##  6   0.5 MINMI  Runtime     0.0896 
+    ##  7   1   MINMI  Coverage  100      
+    ##  8   1   MINMI  Width    1566.     
+    ##  9   1   MINMI  Runtime     0.0946 
+    ## 10   2   MINMI  Coverage   90      
+    ## # … with 20 more rows
 
 ## Coverage Probability
 
@@ -369,9 +365,19 @@ conf_int.coverage.plot <- performance.CI.long %>%
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+```
 
+    ## Warning: Ignoring unknown parameters: linewidth
+
+``` r
 conf_int.coverage.plot
 ```
+
+    ## Warning: Removed 5 rows containing missing values (geom_point).
+
+    ## Warning: Removed 5 row(s) containing missing values (geom_path).
+
+    ## Warning: Removed 5 rows containing missing values (geom_label_repel).
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
@@ -387,9 +393,17 @@ conf_int.width.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+```
 
+    ## Warning: Ignoring unknown parameters: linewidth
+
+``` r
 conf_int.width.plot
 ```
+
+    ## Warning: Removed 5 rows containing missing values (geom_point).
+
+    ## Warning: Removed 5 row(s) containing missing values (geom_path).
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
@@ -406,7 +420,11 @@ conf_int.runtime.plot <- performance.CI.long %>%
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+```
 
+    ## Warning: Ignoring unknown parameters: linewidth
+
+``` r
 conf_int.runtime.plot
 ```
 
@@ -416,9 +434,12 @@ conf_int.runtime.plot
 
 1.  Coverage Probability:
     1.  MINMI generally has better coverage probability than GRIWM
-    2.  In $4\sigma$ scenario, MINMI’s coverage probability drops off —
-        **why?!**. Possibly due to the negative skewed nature of the
-        measurement errors ($\varepsilon < K - \theta$)?
+    2.  In
+        ![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
+        scenario, MINMI’s coverage probability drops off — **why?!**.
+        Possibly due to the negative skewed nature of the measurement
+        errors
+        (![\varepsilon \< K - \theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cvarepsilon%20%3C%20K%20-%20%5Ctheta "\varepsilon < K - \theta"))?
 2.  Confidence Interval Widths:
     1.  MINMI has consistently wider CI’s than GRIWM — it more
         accurately represents the uncertainty associated with our
@@ -452,6 +473,10 @@ tibble(index = 1:n.samples, pct_sigma_sampling) %>%
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
-Under $4\sigma$ scenario, we have a right skewed distribution. Our
-fossils are mostly \<30% of $K-\theta$, but we do get some samples with
-super large measurement error variation. Perhaps these cause problems?
+Under
+![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
+scenario, we have a right skewed distribution. Our fossils are mostly
+\<30% of
+![K-\theta](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;K-%5Ctheta "K-\theta"),
+but we do get some samples with super large measurement error variation.
+Perhaps these cause problems?

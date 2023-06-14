@@ -37,7 +37,7 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults.RData'
+RESULTS_PATH <- 'data/simResults-20230614.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -46,9 +46,9 @@ head(results)
 ```{r}
 results %>%
   group_by(method, error_factor) %>%
-  summarise(point.pct_na = sum(is.na(point))/n(),
-            lower.pct_na = sum(is.na(lower))/n(),
-            upper.pct_na = sum(is.na(upper))/n())
+  summarise(point.pct_na = mean(point,na.rm=TRUE),
+            lower.pct_na = mean(lower,na.rm=TRUE),
+            upper.pct_na = mean(upper,na.rm=TRUE))
 ```
 
 # Point Estimates
@@ -59,10 +59,10 @@ results %>%
 performance.point <- results %>%
   filter(!is.na(point)) %>%
   group_by(error_factor, method) %>%
-  summarise(MSE_000 = mean((point - theta.true)^2)/1000,
-            bias = mean(point)-theta.true,
-            variance_000 = var(point)/1000,
-            avg_runtime = round(mean(point_runtime), 5))
+  summarise(MSE_000 = mean((point - theta.true)^2,na.rm=TRUE)/1000,
+            bias = mean(point,na.rm=TRUE)-theta.true,
+            variance_000 = var(point,na.rm=TRUE)/1000,
+            avg_runtime = round(mean(point_runtime,na.rm=TRUE), 5))
 ```
 
 ```{r}
@@ -113,7 +113,8 @@ performance.point_estimates.plots = lapply(metrics,
                                     "BA-MLE" = "purple",
                                     "Strauss" = "orange",
                                     "GRIWM-corrected" = "darkgray",
-                                    "GRIWM" = "maroon"))
+                                    "GRIWM" = "maroon",
+                                    "UNci" = "darkblue"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -192,7 +193,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue"))
 
 conf_int.coverage.plot
 ```
@@ -208,7 +209,7 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
 
 conf_int.width.plot
 ```
@@ -225,7 +226,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
 
 conf_int.runtime.plot
 ```

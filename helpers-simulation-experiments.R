@@ -111,7 +111,13 @@ estimate_conf_int = function (W,
       p_t = 0.5,
       bias_adjusted = T
     ),
-    MINMI = minmi(
+    MINMI = do_minmi(
+      ages = W,
+      sd = sd,
+      alpha = alpha,
+      K = K
+    ),
+    UNci = do_UNci(theta.true,
       ages = W,
       sd = sd,
       alpha = alpha,
@@ -135,12 +141,12 @@ strauss = function (W) {
   return((n * min(W) - max(W)) / (n - 1))
 }
 
-minmi = function (ages, sd, K, alpha) {
+do_minmi = function (ages, sd, K, alpha) {
   start_time = Sys.time()
   
   results = tryCatch(
     {
-      rminmi::minmi(ages, sd, K, alpha)
+      rminmi::minmi(ages, sd, K, alpha=alpha)
     },
     error = function(cond) {
       message("Something went wrong with `rminmi`:")
@@ -152,14 +158,14 @@ minmi = function (ages, sd, K, alpha) {
   runtime = calculate_tdiff(start_time, Sys.time())
   return(
     list(
-      lower = as.numeric(results$lower),
-      point = as.numeric(results$point),
-      upper = as.numeric(results$upper),
+      lower = as.numeric(results$theta["lower"]),
+      point = as.numeric(results$theta["point"]),
+      upper = as.numeric(results$theta["upper"]),
       point_runtime = runtime,
       conf_int_runtime = runtime,
-      B.lower = results$B$lower,
-      B.point = results$B$point,
-      B.upper = results$B$upper
+      B.lower = results$B["lower"],
+      B.point = results$B["point"],
+      B.upper = results$B["upper"]
     )
   )
 }
@@ -182,6 +188,35 @@ griwm = function(alpha,
       upper = as.numeric(results$upper_ci),
       point_runtime = runtime,
       conf_int_runtime = runtime
+    )
+  )
+}
+
+do_UNci = function (theta, ages, sd, K, alpha) {
+  start_time = Sys.time()
+  
+  results = tryCatch(
+    {
+      getUNci(0.8*theta, ages, sd, K, alpha=alpha)
+    },
+    error = function(cond) {
+      message("Something went wrong with `getUNci`:")
+      message(cond)
+      # Choose a return value in case of error
+      return(list())
+    }
+  )
+  runtime = calculate_tdiff(start_time, Sys.time())
+  return(
+    list(
+      lower = as.numeric(results$theta["lower"]),
+      point = as.numeric(results$theta["point"]),
+      upper = as.numeric(results$theta["upper"]),
+      point_runtime = runtime,
+      conf_int_runtime = runtime,
+      B.lower = results$B["lower"],
+      B.point = results$B["point"],
+      B.upper = results$B["upper"]
     )
   )
 }
