@@ -21,6 +21,7 @@ methods.point_estimates = c(
 methods.conf_int = c(
   "MINMI"
   , "UNci"
+  , "UNwald"
   # ,"GRIWM"
   # ,"GRIWM-corrected"
 )
@@ -41,7 +42,7 @@ results = data.frame(
 )
 
 pilot.dates = datasets[1, "W"][[1]]
-A = 0.2 * (mean(fossil.sd)) ^ 2
+A = 0.1 * (mean(fossil.sd))
 
 ############################################################
 # Run Trials
@@ -49,7 +50,7 @@ A = 0.2 * (mean(fossil.sd)) ^ 2
 log_info("Performing Simulations")
 
 start_time = Sys.time()
-#for (i in 1:500) {
+#for (i in 1:100) {
 for (i in 1:nrow(datasets)) {
   log_info(sprintf("Dataset: %i/%i", i, nrow(datasets)))
   iter = datasets[i, ]

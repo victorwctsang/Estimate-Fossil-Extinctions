@@ -23,9 +23,9 @@ UNloglik = function(theta,ages,sd,K,B=100,u=matrix(runif(B*length(ages)),ncol=B)
 getTheta = function(theta, ages, sd, K, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
   if(all(sd==0))
-    thetaMLE = list( par=min(ages), value=length(ages)*log(1/(K-min(ages))) )
+    thetaMLE = list( par=min(ages), value=length(ages)*log(1/(K-min(ages))), hessian=-Inf )
   else
-    thetaMLE = optim(theta,UNloglik,ages=ages,sd=sd,K=K,u=u,method="Brent",lower=0*theta,upper=2*theta,control=list(trace=TRUE,fnscale=-1))
+    thetaMLE = optim(theta,UNloglik,ages=ages,sd=sd,K=K,u=u,method="Brent",lower=0*theta,upper=2*theta,control=list(trace=TRUE,fnscale=-1),hessian=TRUE)
 #   thetaMLE = optim(theta,UNloglik,ages=ages,sd=sd,K=K,u=u,method="BFGS",control=list(trace=TRUE,fnscale=-1))
 }
 
@@ -35,14 +35,24 @@ getLRT = function(theta0,thetaMLE,ages, sd, K, alpha=0.05, B=100, u=matrix(runif
   return(-2*(ll0-thetaMLE$value)-qchisq(1-alpha,1))
 }
   
-getUNci = function(theta, ages, sd, K, alpha=0.05, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
+getUNci = function(theta, ages, sd, K, alpha=0.05, B=100, u=matrix(runif(B*length(ages)),ncol=B), wald=FALSE )
 {
   thetaMLE = getTheta(theta, ages, sd, K, u=u)
-  lo = try( uniroot(getLRT,thetaMLE$par*c(0.25,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
-  if(inherits(lo,"try-error")) lo=list(root=thetaMLE$par)
-  hi = try( uniroot(getLRT,thetaMLE$par*c(1,1.25),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
-  if(inherits(hi,"try-error")) hi=list(root=thetaMLE$par)
-  return( list(theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root),B=c(lower=B,point=B,upper=B)) )
+  SE=NULL
+  if(wald==TRUE)
+  {
+    SE = 1/sqrt(-thetaMLE$hessian)
+    lo = list( root=thetaMLE$par - qnorm(1-alpha/2) * SE )
+    hi = list( root=thetaMLE$par + qnorm(1-alpha/2) * SE )
+  }
+  else
+  {
+    lo = try( uniroot(getLRT,thetaMLE$par*c(0.25,1),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="downX") )
+    if(inherits(lo,"try-error")) lo=list(root=thetaMLE$par)
+    hi = try( uniroot(getLRT,thetaMLE$par*c(1,1.25),thetaMLE,alpha=alpha, ages=ages,sd=sd,K=K,u=u,extendInt="upX") )
+    if(inherits(hi,"try-error")) hi=list(root=thetaMLE$par)
+  }
+  return( list( theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root), B=c(lower=B,point=B,upper=B), se=SE) )
 }
 
 do.test = FALSE

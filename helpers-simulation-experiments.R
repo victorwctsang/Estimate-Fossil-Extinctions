@@ -121,7 +121,15 @@ estimate_conf_int = function (W,
       ages = W,
       sd = sd,
       alpha = alpha,
-      K = K
+      K = K,
+      wald=FALSE
+    ),
+    UNwald = do_UNci(theta.true,
+                   ages = W,
+                   sd = sd,
+                   alpha = alpha,
+                   K = K,
+                   wald=TRUE
     )
   )
   return(estimate)
@@ -192,12 +200,12 @@ griwm = function(alpha,
   )
 }
 
-do_UNci = function (theta, ages, sd, K, alpha) {
+do_UNci = function (theta, ages, sd, K, alpha, wald=wald) {
   start_time = Sys.time()
   
   results = tryCatch(
     {
-      getUNci(min(ages), ages, sd, K, alpha=alpha)
+      getUNci(min(ages), ages, sd, K, alpha=alpha, wald=wald)
     },
     error = function(cond) {
       message("Something went wrong with `getUNci`:")
@@ -212,7 +220,7 @@ do_UNci = function (theta, ages, sd, K, alpha) {
       lower = as.numeric(results$theta["lower"]),
       point = as.numeric(results$theta["point"]),
       upper = as.numeric(results$theta["upper"]),
-      point_runtime = runtime,
+      point_runtime = results$se,
       conf_int_runtime = runtime,
       B.lower = results$B["lower"],
       B.point = results$B["point"],

@@ -37,7 +37,7 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-20230614.RData'
+RESULTS_PATH <- 'data/simResults-20230615.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -166,9 +166,9 @@ performance.CI <- results %>%
   mutate(width = upper - lower,
          contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
   group_by(error_factor, method) %>%
-  summarise(Coverage = round(mean(contains_theta) * 100, 1),
-            `Average Width` = round(mean(width), 2),
-            `Average Runtime` = round(mean(conf_int_runtime), 5)) %>%
+  summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
+            `Average Width` = round(mean(width, na.rm=TRUE), 2),
+            `Average Runtime` = round(mean(conf_int_runtime, na.rm=TRUE), 5)) %>%
   ungroup() %>%
   arrange(method, error_factor)
 
@@ -193,7 +193,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red"))
 
 conf_int.coverage.plot
 ```
@@ -209,7 +209,7 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
 
 conf_int.width.plot
 ```
@@ -226,7 +226,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
 
 conf_int.runtime.plot
 ```
@@ -290,3 +290,18 @@ for(iError in 1:nError)
 Um, yes! Not at `r error_factor=0`, as expected, because this is a sample minimum.
 
 Quantiles also seem to be approx normal with no outliers (except at `r error_factor=4` where it looks like there is some non-convergence).
+
+#### How good are standard error estimates?
+
+```{r waldSE}
+errors=unique(results$error_factor)
+nError=length(errors)
+par(mfrow=c(3,2),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
+for(iError in 1:nError)
+{
+  tmp=results%>%filter(method=="UNwald" & error_factor==errors[iError]) %>% select(point,point_runtime)
+  nError=length(errors)
+  hist(tmp$point_runtime,xlab="SE",ylab="",main="")
+  abline(v=sd(tmp$point),col="red")
+}
+```
