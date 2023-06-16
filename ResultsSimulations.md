@@ -1,7 +1,7 @@
 Simulation Results
 ================
 Victor Tsang
-15 June, 2023
+16 June, 2023
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
@@ -50,24 +50,24 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-20230615.RData'
+RESULTS_PATH <- 'data/simResults-100-20230616.RData'
 load(RESULTS_PATH)
 
 head(results)
 ```
 
     ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
-    ## 1          0.0  MINMI 14312.97 14934.48 15068.02  9.012222e-05     9.012222e-05
-    ## 2          0.0   UNci 14684.29 15073.05 15073.05            NA     9.035707e-02
-    ## 3          0.0 UNwald 15073.05 15073.05 15073.05  0.000000e+00     1.123714e-02
-    ## 4          0.5  MINMI 14341.41 14985.43 15450.47  1.045511e-01     1.045511e-01
-    ## 5          0.5   UNci 14522.93 14999.27 15184.97            NA     9.669209e-02
-    ## 6          0.5 UNwald 14750.29 14999.35 15248.40  1.270710e+02     4.822183e-02
+    ## 1          0.0  MINMI 14830.29 14982.86 15016.26  7.891655e-05     7.891655e-05
+    ## 2          0.0   UNci 14920.89 15017.52 15017.52            NA     5.306005e-02
+    ## 3          0.0 UNwald 15017.52 15017.52 15017.52  0.000000e+00     7.192850e-03
+    ## 4          0.5  MINMI 14833.54 15074.69 15630.77  1.979718e-01     1.979718e-01
+    ## 5          0.5   UNci 14861.38 15026.43 15134.66            NA     1.551909e-01
+    ## 6          0.5 UNwald 14899.04 15026.44 15153.83  6.499868e+01     6.108403e-02
     ##   B.lower B.point B.upper
     ## 1      NA      NA      NA
     ## 2     100     100     100
     ## 3     100     100     100
-    ## 4     101     100     100
+    ## 4     100     100     100
     ## 5     100     100     100
     ## 6     100     100     100
 
@@ -86,21 +86,21 @@ results %>%
     ## # Groups:   method [3]
     ##    method error_factor point.pct_na lower.pct_na upper.pct_na
     ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 MINMI           0         14959.       14339.       15092.
-    ##  2 MINMI           0.5       14889.       14239.       15355.
-    ##  3 MINMI           1         14768.       14032.       15748.
-    ##  4 MINMI           2         14554.       13556.       16694.
-    ##  5 MINMI           4         13922.       12212.       18689.
-    ##  6 UNci            0         15097.       14709.       15097.
-    ##  7 UNci            0.5       14961.       14434.       15192.
-    ##  8 UNci            1         14874.       14223.       15211.
-    ##  9 UNci            2         14714.       13855.       15233.
-    ## 10 UNci            4         14296.       13130.       15159.
-    ## 11 UNwald          0         15097.       15097.       15097.
-    ## 12 UNwald          0.5       14961.       14646.       15277.
-    ## 13 UNwald          1         14874.       14431.       15316.
-    ## 14 UNwald          2         14714.       14064.       15364.
-    ## 15 UNwald          4         14296.        -Inf          Inf
+    ##  1 MINMI           0         15014.       14863.       15048.
+    ##  2 MINMI           0.5       14957.       14714.       15515.
+    ##  3 MINMI           1         14896.       14451.       16054.
+    ##  4 MINMI           2         14813.       13867.       17268.
+    ##  5 MINMI           4         14756.       12663.       21001.
+    ##  6 UNci            0         15049.       14953.       15049.
+    ##  7 UNci            0.5       15032.       14833.       15154.
+    ##  8 UNci            1         15032.       14774.       15208.
+    ##  9 UNci            2         15024.       14680.       15281.
+    ## 10 UNci            4         15009.       14537.       15425.
+    ## 11 UNwald          0         15049.       15049.       15049.
+    ## 12 UNwald          0.5       15032.       14883.       15182.
+    ## 13 UNwald          1         15032.       14824.       15240.
+    ## 14 UNwald          2         15024.       14732.       15317.
+    ## 15 UNwald          4         15009.       14611.       15461.
 
 # Point Estimates
 
@@ -137,9 +137,9 @@ performance.point.tbl[[1]]
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI       11   -41            9     0.00036
-    ## 2            0 UNci        18    97            9   NaN      
-    ## 3            0 UNwald      18    97            9     0
+    ## 1            0 MINMI        3    14            2     0.00018
+    ## 2            0 UNci         5    49            2   NaN      
+    ## 3            0 UNwald       5    49            2     0
 
 ``` r
 performance.point.tbl[[2]]
@@ -148,9 +148,9 @@ performance.point.tbl[[2]]
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 UNci        24   -39           22     NaN    
-    ## 2          0.5 UNwald      24   -39           22     161.   
-    ## 3          0.5 MINMI       50  -111           38       0.417
+    ## 1          0.5 UNci         9    32            8     NaN    
+    ## 2          0.5 UNwald       9    32            8      76.3  
+    ## 3          0.5 MINMI       47   -43           45       0.533
 
 ``` r
 performance.point.tbl[[3]]
@@ -159,9 +159,9 @@ performance.point.tbl[[3]]
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 UNci        52  -126           36     NaN    
-    ## 2            1 UNwald      52  -126           36     226.   
-    ## 3            1 MINMI      226  -232          173       0.420
+    ## 1            1 UNci        15    32           14     NaN    
+    ## 2            1 UNwald      15    32           14     106.   
+    ## 3            1 MINMI      198  -104          187       0.559
 
 ``` r
 performance.point.tbl[[4]]
@@ -170,9 +170,9 @@ performance.point.tbl[[4]]
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 UNci       146  -286           64     NaN    
-    ## 2            2 UNwald     146  -286           64     331.   
-    ## 3            2 MINMI      708  -446          510       0.478
+    ## 1            2 UNci        25    24           24     NaN    
+    ## 2            2 UNwald      25    24           24     149.   
+    ## 3            2 MINMI      894  -187          860       0.586
 
 ``` r
 performance.point.tbl[[5]]
@@ -181,9 +181,9 @@ performance.point.tbl[[5]]
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 UNci      1022  -704          527     NaN    
-    ## 2            4 UNwald    1022  -704          527     Inf    
-    ## 3            4 MINMI     4468 -1078         3309       0.521
+    ## 1            4 UNci       171     9          171     NaN    
+    ## 2            4 UNwald     171     9          171     217.   
+    ## 3            4 MINMI     3280  -244         3223       0.634
 
 #### Pivot to make plots
 
@@ -199,16 +199,16 @@ performance.point.long
     ## # Groups:   Error [5]
     ##    Error Method Metric      value
     ##    <dbl> <chr>  <chr>       <dbl>
-    ##  1     0 MINMI  MSE_000  10.7    
-    ##  2     0 MINMI  Bias    -41.3    
-    ##  3     0 MINMI  Var_000   8.96   
-    ##  4     0 MINMI  Runtime   0.00036
-    ##  5     0 UNci   MSE_000  18.1    
-    ##  6     0 UNci   Bias     96.9    
-    ##  7     0 UNci   Var_000   8.71   
+    ##  1     0 MINMI  MSE_000   2.58   
+    ##  2     0 MINMI  Bias     14.3    
+    ##  3     0 MINMI  Var_000   2.37   
+    ##  4     0 MINMI  Runtime   0.00018
+    ##  5     0 UNci   MSE_000   4.72   
+    ##  6     0 UNci   Bias     48.8    
+    ##  7     0 UNci   Var_000   2.34   
     ##  8     0 UNci   Runtime NaN      
-    ##  9     0 UNwald MSE_000  18.1    
-    ## 10     0 UNwald Bias     96.9    
+    ##  9     0 UNwald MSE_000   4.72   
+    ## 10     0 UNwald Bias     48.8    
     ## # … with 50 more rows
 
 ### Plots
@@ -363,16 +363,16 @@ performance.CI.long
     ## # A tibble: 45 × 4
     ##    Error Method Metric        value
     ##    <dbl> <chr>  <chr>         <dbl>
-    ##  1   0   MINMI  Coverage   95.6    
-    ##  2   0   MINMI  Width     753.     
-    ##  3   0   MINMI  Runtime     0.00036
-    ##  4   0.5 MINMI  Coverage   95.4    
-    ##  5   0.5 MINMI  Width    1116.     
-    ##  6   0.5 MINMI  Runtime     0.417  
-    ##  7   1   MINMI  Coverage   95.5    
-    ##  8   1   MINMI  Width    1716.     
-    ##  9   1   MINMI  Runtime     0.420  
-    ## 10   2   MINMI  Coverage   97      
+    ##  1   0   MINMI  Coverage   94.3    
+    ##  2   0   MINMI  Width     185.     
+    ##  3   0   MINMI  Runtime     0.00018
+    ##  4   0.5 MINMI  Coverage   94.2    
+    ##  5   0.5 MINMI  Width     801.     
+    ##  6   0.5 MINMI  Runtime     0.533  
+    ##  7   1   MINMI  Coverage   94      
+    ##  8   1   MINMI  Width    1603.     
+    ##  9   1   MINMI  Runtime     0.559  
+    ## 10   2   MINMI  Coverage   94.1    
     ## # … with 35 more rows
 
 ## Coverage Probability

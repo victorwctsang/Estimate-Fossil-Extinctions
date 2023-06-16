@@ -9,7 +9,6 @@ library(readxl)
 source("helpers-simulation-experiments.R")
 
 options(nwarnings = 10000)
-SYNTH_DATA_PATH = paste0("data/synthetic-data-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
 # Configure synthetic data generation
 synthetic.data.config <- list(
@@ -17,10 +16,12 @@ synthetic.data.config <- list(
   theta.true = 15000,
   K = 20000,
   n.trials = 1000,
-  n.samples = 50,
+  n.samples = 200,
   error_factors = c(0, 0.5, 1, 2, 4),
   dating_error.mean = 0
 )
+
+SYNTH_DATA_PATH = paste0("data/synthetic-data-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
 set.seed(168)
 synthetic.data.config$n.error_factors <- length(synthetic.data.config$error_factors)
@@ -31,7 +32,11 @@ mammoth_data = read_excel(path='data/fossildata.xlsx',
                           col_names=c("age", "sd"), 
                           col_types=c('numeric', 'numeric'))
 
-synthetic.data.config$fossil.sd <- mammoth_data$sd[1:synthetic.data.config$n.samples]
+if(synthetic.data.config$n.samples<=length(mammoth_data$sd))
+  synthetic.data.config$fossil.sd <- mammoth_data$sd[1:synthetic.data.config$n.samples]
+if(synthetic.data.config$n.samples>length(mammoth_data$sd))
+  synthetic.data.config$fossil.sd <- sample(mammoth_data$sd,synthetic.data.config$n.samples,replace=TRUE)
+
 attach(synthetic.data.config)
 
 # Generate synthetic data

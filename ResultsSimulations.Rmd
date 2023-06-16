@@ -37,7 +37,7 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-20230615.RData'
+RESULTS_PATH <- 'data/simResults-100-20230616.RData'
 load(RESULTS_PATH)
 
 head(results)

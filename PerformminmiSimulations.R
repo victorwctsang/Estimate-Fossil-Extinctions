@@ -8,7 +8,8 @@ source('UNloglik.R')
 
 log_info("Loading synthetic dataset and configuration")
 
-load("data/synthetic-data.RData")
+#load("data/synthetic-data.RData")
+load("data/synthetic-data-100-20230616.RData")
 attach(synthetic.data.config)
 
 alpha = 0.05
@@ -26,7 +27,8 @@ methods.conf_int = c(
   # ,"GRIWM-corrected"
 )
 
-RESULTS_PATH = paste0("data/simResults-", format(Sys.Date(), "%Y%m%d"), ".RData")
+n.samples = length(datasets[1,]$W[[1]])
+RESULTS_PATH = paste0("data/simResults-", n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
 results = data.frame(
   error_factor=double(),
