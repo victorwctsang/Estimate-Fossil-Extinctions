@@ -9,8 +9,8 @@ source('UNloglik.R')
 log_info("Loading synthetic dataset and configuration")
 
 #load("data/synthetic-data.RData")
-load("data/synthetic-data-100-20230616.RData")
-attach(synthetic.data.config)
+#load("data/synthetic-data-12-20230616.RData")
+#attach(synthetic.data.config)
 
 alpha = 0.05
 
@@ -23,6 +23,7 @@ methods.conf_int = c(
   "MINMI"
   , "UNci"
   , "UNwald"
+  , "mleInv"
   # ,"GRIWM"
   # ,"GRIWM-corrected"
 )
@@ -52,8 +53,8 @@ A = 0.1 * (mean(fossil.sd))
 log_info("Performing Simulations")
 
 start_time = Sys.time()
-#for (i in 1:100) {
-for (i in 1:nrow(datasets)) {
+for (i in 1:nSim) {
+#for (i in 1:nrow(datasets)) {
   log_info(sprintf("Dataset: %i/%i", i, nrow(datasets)))
   iter = datasets[i, ]
   W = as.numeric(iter$W[[1]])

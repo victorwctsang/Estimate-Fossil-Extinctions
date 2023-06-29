@@ -131,6 +131,11 @@ estimate_conf_int = function (W,
                    K = K,
                    wald=TRUE
     )
+    ,
+    mleInv = do_mleInv(ages = W,
+                     sd = sd,
+                     alpha = alpha,
+                     K = K)
   )
   return(estimate)
 }
@@ -225,6 +230,41 @@ do_UNci = function (theta, ages, sd, K, alpha, wald=wald) {
       B.lower = results$B["lower"],
       B.point = results$B["point"],
       B.upper = results$B["upper"]
+    )
+  )
+}
+
+source("MLEinversion.R")
+
+do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans)
+{
+
+  u = matrix(runif(B*length(ages)),ncol=B)
+
+  pt.start_time = Sys.time()
+  ft.mle = getTheta(ages=ages, theta=min(ages), eps.sigma=sd, K=K, u=u)
+  pt.runtime = calculate_tdiff(pt.start_time, Sys.time())
+
+  ci.start_time = Sys.time()
+  
+  stepSize = max(1/sqrt(-ft.mle$hessian), IQR(ages)*0.1, na.rm=TRUE)
+  thetaInits = ft.mle$par + stepSize*seq(-5,5,length=20)
+  ft.lo = regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
+                q=alpha/2,iterMax=iterMax,K=K,eps.sigma=sd, u=u, method="rq")
+  ft.hi = regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
+                       q=1-alpha/2, iterMax=iterMax*1.1, stats=ft.lo$stats, 
+                       K=K,eps.sigma=sd, u=u, method="rq")
+  ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
+  return(
+    list(
+      lower = ft.lo$theta,
+      point = ft.mle$par,
+      upper = ft.hi$theta,
+      point_runtime = pt.runtime,
+      conf_int_runtime = ci.runtime,
+      B.lower = B,
+      B.point = B,
+      B.upper = B
     )
   )
 }

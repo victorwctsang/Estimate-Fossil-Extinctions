@@ -1,18 +1,21 @@
-regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=1000, eps=1.e-5, method="rq", ...)
+regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=1000, eps=1.e-5, method="rq", stats = NULL, ...)
 {
   t_obs = getT(data, ...)
 
   # get initial stats
-  stats=data.frame(theta=NULL,T=NULL,thetaEst=NULL)
-  for(i in 1:length(thetaInits) )
+  if(is.null(stats))
   {
-    newDat = simulateData(thetaInits[i], ...)
-    stats = rbind(stats, c(theta=thetaInits[i], T = getT(newDat, ...), thetaEst=thetaInits[i]) )
-  }      
-  names(stats)=c("theta","T","thetaEst")
+    stats=data.frame(theta=NULL,T=NULL,thetaEst=NULL)
+    for(i in 1:length(thetaInits) )
+    {
+      newDat = simulateData(thetaInits[i], ...)
+      stats = rbind(stats, c(theta=thetaInits[i], T = getT(newDat, ...), thetaEst=thetaInits[i]) )
+    }      
+    names(stats)=c("theta","T","thetaEst")
+  }
   
   # define getPred and getErr functions (to avoid repeated if statements in estimation)
-  if(method=="rq")
+  if(method=="rq"||method=="wrq")
   {
     q = 1-q # flipping quantile is needed when using this approach
     getPred = function(newtheta,qfit,t_obs,q)
@@ -25,7 +28,10 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
       if(inherits(prEst,"try-error"))
         err = Inf
       else
-        err = (prEst[3]-prEst[2])/qnorm(0.975)/2/coef(qfit)[2]
+        if(coef(qfit)[2]>0) # find the value matching to observed t if decent fit
+          err = (prEst[3]-prEst[2])/qnorm(0.975)/2/coef(qfit)[2]
+        else
+          err = Inf
       return(err)
     }
   }
@@ -37,24 +43,30 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
     }
     getErr = function(newtheta,qfit,t_obs,q)
     {
-      prEst = predict(qfit,newdata=list(theta=newtheta),se.fit=TRUE)
-      err = prEst$se.fit/coef(qfit)[2]
+      if(coef(qfit)[2]>0) # find the value matching to observed t if decent fit
+      {
+        prEst = predict(qfit,newdata=list(theta=newtheta),se.fit=TRUE)
+        err = prEst$se.fit/coef(qfit)[2]
+      }
+      else 
+        err = Inf
       return(err)
     }
   }
   
-  iter = length(thetaInits)
+  iter = dim(stats)[1]
   res = updateTheta(stats, t_obs, q, method=method, getPred=getPred)
   isConverged = FALSE
   while(isConverged == FALSE & iter<iterMax)
   {
     iter=iter+1
-    thetaNew = iter*res$theta - sum(stats$theta)
+    thetaNew = getThetaSim(iter,thetaEst=res$theta,thetaSims=stats$theta)
     newDat = simulateData(thetaNew, ...)
     stats = rbind(stats, c(theta=thetaNew, T = getT(newDat, ...), thetaEst=res$theta) )
     res = updateTheta(stats, t_obs, q, qfit=res$qfit, method=method, getPred=getPred)
-    err = getErr(res$theta,res$qfit,t_obs,q)
-    isConverged = err<eps
+    err = getErr(res$theta,res$qfit,t_obs,q) / abs(res$theta)
+#    err = abs(res$theta-stats$thetaEst[iter])
+    isConverged = err < eps
   }
   return(list(theta=res$theta,error=err,iter=iter,converged=isConverged,stats=stats))
 }
@@ -62,12 +74,19 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
 updateTheta = function(stats,t_obs,q,qfit=NULL,method="rq",getPred=getPred)
 # dat is a dataframe containing theta and T (parameter and statistic)
 {
+  if(method=="wrq")
+  {
+    lm_ft = lm(T~theta,data=stats)
+    infl = 1/influence(lm_ft)$hat
+    stats$wt=infl/mean(infl)
+  }
   if(is.null(qfit))
   {
-    if(method=="rq")
-      ft = quantreg::rq(T~theta,tau=q,data=stats)
-    else
-      ft = glm(I(T>t_obs)~theta,family=binomial("probit"),data=stats)
+    ft = switch(method,
+           "rq" = quantreg::rq(T~theta,tau=q,data=stats), #consider varying rq method, "fn" or "pfn"
+           "wrq" = quantreg::rq(T~theta,tau=q,weights=wt,data=stats),
+               glm(I(T>t_obs)~theta,family=binomial("probit"),data=stats)
+    )
   }
   else
      ft = update(qfit,data=stats)
@@ -77,7 +96,19 @@ updateTheta = function(stats,t_obs,q,qfit=NULL,method="rq",getPred=getPred)
     theta = uniroot(getPred,lower=min(stats$theta), upper=max(stats$theta), 
                   extendInt="upX", qfit=ft, t_obs=t_obs, q=q) 
   }
-  else #otherwise use current best estimate until something changes!
-    theta=list(root=stats$thetaEst[nrow(stats)])
+  else #otherwise use current best estimate + jitter until something changes!
+    theta=list( root=stats$thetaEst[nrow(stats)]*(1+runif(1,-0.01,0.01)) )
   return(list(theta=theta$root,qfit=ft))
+}
+
+getThetaSim = function(iter,thetaEst,thetaSims)
+{
+  thetaNew = iter*thetaEst - sum(thetaSims)
+  # put bounds on thetaNew so not crazy
+  outRange = IQR(thetaSims)*1.5
+  if ( thetaNew>max(thetaSims)+outRange )
+    thetaNew = max(thetaSims)+outRange
+  if ( thetaNew<min(thetaSims)-outRange )
+    thetaNew = min(thetaSims)-outRange
+  return(thetaNew)
 }
