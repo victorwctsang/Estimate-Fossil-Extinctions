@@ -18,8 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 * MINMI point estimates aren't as accurate as MLE under Uniform-Normal (UN) model
 * MINMI point estimates appear to be more biased than MLE
 * main issue is that MINMI has much higher sample variance - and not decreasing with sample size!!
-* Coverage probability of MINMI is better than MLE for low sample size - but intervals very wide!
 * The issue here is that sample minimum is not a good statistic for measurement error scenarios :(
+* Coverage probability of MINMI and MLE_INV is good, asymptotic MLE is good except at low sample size and low measurement error
+
 
 #### Which value of `error_factor` do we want plots for?
 ```{r whichError}
@@ -42,7 +43,7 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-100-20230616.RData'
+RESULTS_PATH <- 'data/simResults-12-20230714.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -50,10 +51,11 @@ all_results=results
 all_results$n.samples = synthetic.data.config$n.samples
 all_results=all_results[0,]
 
-n.samples=c(12,25,50,100)
+n.samples=c(12,24,36,48,60)
+#n.samples=c(12,24,36,48)
 for (iSample in 1:length(n.samples))
 {
-  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230616.RData")
+  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230714.RData")
   load(RESULTS_PATH)
   all_results=tibble::add_row(
       all_results,
@@ -109,7 +111,6 @@ for (i in 1:length(n.samples)) {
 performance.point.tbl[[1]]
 performance.point.tbl[[2]]
 performance.point.tbl[[3]]
-performance.point.tbl[[4]]
 
 ```
 Ignore run-times - I used that to store SEs for UN
@@ -144,7 +145,12 @@ performance.point_estimates.plots = lapply(metrics,
                                     "Strauss" = "orange",
                                     "GRIWM-corrected" = "darkgray",
                                     "GRIWM" = "maroon",
-                                    "UNci" = "darkblue"))
+                                    "UNci" = "darkblue",
+                                    "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -216,7 +222,12 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Coverage probability", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
+    
 
 conf_int.coverage.plot
 ```
@@ -232,7 +243,12 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
+    
 
 conf_int.width.plot
 ```
@@ -249,7 +265,12 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
+    
 
 conf_int.runtime.plot
 ```
@@ -257,14 +278,14 @@ conf_int.runtime.plot
 ## Commentary
 
 1. Coverage Probability:
-    1. MINMI generally has good coverage probability
-    2. UN-MLE methods have good coverage at moderate-large sample sizes (but not for small n)
+    1. MINMI generally has good coverage probability, as does MLE-INV
+    2. Asymptotic UN-MLE methods have good coverage at moderate-large sample sizes (but not for small n)
     3. UN-Wald is slower to converge to desired coverage probability (symmetric CI)
 2. Confidence Interval Widths:
     1. MINMI has way wider CIs
-    2. CI width does not decrease as sample size increases
+    2. MINMI CI width does not decrease as sample size increases
 3. Runtime
-    1. MINMI takes longer! Although I was using B=100, might have been fairer to compare at B=100 instead of doing choose B first
+    1. MLE_INV takes ages, MINMI a bit longer(!) Although I was using B=100, might have been fairer to compare at B=100 instead of doing choose B first
 
 #### Extra bonus: is the sampling distribution of MLE Gaussian for $\sigma>0$?
 

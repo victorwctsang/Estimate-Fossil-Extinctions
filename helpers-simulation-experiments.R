@@ -1,3 +1,4 @@
+source("MLEinversion.R")
 
 library(readxl)
 
@@ -136,6 +137,24 @@ estimate_conf_int = function (W,
                      sd = sd,
                      alpha = alpha,
                      K = K)
+    ,
+    mleInv2 = do_mleInv(ages = W,
+                       sd = sd,
+                       alpha = alpha,
+                       K = K,
+                       method="rq2")
+    ,
+    mleInvP = do_mleInv(ages = W,
+                        sd = sd,
+                        alpha = alpha,
+                        K = K,
+                        method="prob")
+    ,
+    mleInvW = do_mleInv(ages = W,
+                        sd = sd,
+                        alpha = alpha,
+                        K = K,
+                        method="wrq")
   )
   return(estimate)
 }
@@ -234,9 +253,7 @@ do_UNci = function (theta, ages, sd, K, alpha, wald=wald) {
   )
 }
 
-source("MLEinversion.R")
-
-do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans)
+do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans, method="rq")
 {
 
   u = matrix(runif(B*length(ages)),ncol=B)
@@ -250,10 +267,10 @@ do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans)
   stepSize = max(1/sqrt(-ft.mle$hessian), IQR(ages)*0.1, na.rm=TRUE)
   thetaInits = ft.mle$par + stepSize*seq(-5,5,length=20)
   ft.lo = regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
-                q=alpha/2,iterMax=iterMax,K=K,eps.sigma=sd, u=u, method="rq")
+                q=alpha/2,iterMax=iterMax,K=K,eps.sigma=sd, u=u, method=method)
   ft.hi = regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
-                       q=1-alpha/2, iterMax=iterMax*1.1, stats=ft.lo$stats, 
-                       K=K,eps.sigma=sd, u=u, method="rq")
+                       q=1-alpha/2, iterMax=iterMax, #stats=ft.lo$stats[1:length(thetaInits),], 
+                       K=K,eps.sigma=sd, u=u, method=method)
   ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
   return(
     list(

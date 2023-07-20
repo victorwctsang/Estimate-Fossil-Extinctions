@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#PBS -N minmiSim
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=11:59:59
+#PBS -j oe
+#PBS -M David.Warton@unsw.edu.au
+#PBS -m ae
+#PBS -J 0-124
+
+module add nlopt/2.7.0
+module add gcc/12.2.0
+module add gsl/2.7.1
+module add r/4.3.0
+
+cd fossils
+
+Rscript -e "whichSims = as.numeric(Sys.getenv('PBS_ARRAY_INDEX'))*40+(1:40); source('doSims.R'); do.sim(whichSims,date='20230714')"

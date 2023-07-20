@@ -12,18 +12,23 @@ options(nwarnings = 10000)
 
 # Configure synthetic data generation
 synthetic.data.config <- list(
-  seed = 168,
+  seed = 60,
   theta.true = 15000,
   K = 20000,
   n.trials = 1000,
-  n.samples = 200,
+  n.samples = 60,
   error_factors = c(0, 0.5, 1, 2, 4),
   dating_error.mean = 0
 )
 
 SYNTH_DATA_PATH = paste0("data/synthetic-data-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
-set.seed(168)
+#set.seed(12) # for n=12
+#set.seed(24) # for n=24
+#set.seed(36) # for n=36
+#set.seed(48) # for n=48
+set.seed(60) # for n=60
+
 synthetic.data.config$n.error_factors <- length(synthetic.data.config$error_factors)
 
 mammoth_data = read_excel(path='data/fossildata.xlsx',

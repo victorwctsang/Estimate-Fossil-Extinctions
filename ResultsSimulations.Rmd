@@ -38,7 +38,7 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-12-20230628.RData'
+RESULTS_PATH <- 'data/simResults-48-20230712.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -116,8 +116,11 @@ performance.point_estimates.plots = lapply(metrics,
                                     "GRIWM-corrected" = "darkgray",
                                     "GRIWM" = "maroon",
                                     "UNci" = "darkblue",
-                                    "UNwald"="red",
-                                    "mleInv" = "purple"))
+                                    "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -165,6 +168,8 @@ performance.CI <- results %>%
   filter(!is.na(conf_int_runtime)) %>%
   mutate(width = upper - lower,
          contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
+#         contains_theta = ifelse(theta.true > lower, 1, 0)) %>%
+#         contains_theta = ifelse(theta.true < upper, 1, 0)) %>%
   group_by(error_factor, method) %>%
   summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
             `Average Width` = round(mean(width, na.rm=TRUE), 2),
@@ -193,7 +198,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 
 conf_int.coverage.plot
 ```
@@ -209,7 +214,7 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 
 conf_int.width.plot
 ```
@@ -226,7 +231,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 
 conf_int.runtime.plot
 ```
@@ -290,7 +295,7 @@ for(iError in 1:nError)
 
 Um, yes! Not at `r error_factor=0`, as expected, because this is a sample minimum.
 
-Quantiles also seem to be approx normal with no outliers (except at `r error_factor=4` where it looks like there is some non-convergence).
+Quantiles also seem to be approx normal with no outliers (except at `r error_factor`=4 where it looks like there is some non-convergence).
 
 #### How good are standard error estimates?
 

@@ -19,6 +19,27 @@ UNloglik = function(theta,ages,sds,K,B=100,u=matrix(runif(B*length(ages)),ncol=B
   return(ll=sum(log(dUN)))
 }
 
+UNscore = function(theta,ages,sds,K,B=100,u=matrix(runif(B*length(ages)),ncol=B))
+{
+  # get logLik
+  nFossils = length(ages)
+  dlUN = rep(NA,nFossils )
+  for(iObs in 1:nFossils)
+  {
+    if(sds[iObs]==0)
+      e = 0
+    else
+      e = extraDistr::qtnorm(p = u[iObs,], mean = 0, sd = sds[iObs], a = -Inf, b = ages[iObs]-theta)
+    F.eps.m = pnorm(ages[iObs] - theta, mean = 0, sd = sds[iObs])
+    F.eps.K = pnorm(K - theta, mean = 0, sd = sds[iObs])
+    f.eps.m = dnorm(ages[iObs] - theta, mean = 0, sd = sds[iObs])
+    f.eps.K = dnorm(K - theta, mean = 0, sd = sds[iObs])
+    dlUNworking = mean( F.eps.m / F.eps.K / (K-e-theta) * ( f.eps.K/F.eps.K + 1/(K-e-theta) ) ) - f.eps.m/F.eps.K/(K-ages[iObs])
+    dlUN[iObs] = dlUNworking / UNloglik(theta,ages[iObs],sds[iObs],K,u=as.matrix(u[iObs,]))
+  }
+  return(dlUN)
+}
+
 # find MLE
 getTheta = function(ages, theta=min(ages), eps.sigma, K, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
@@ -72,13 +93,23 @@ thetaMLE=getTheta(ages,theta,sds,K,u=u)
 
 print(getUNci(theta,ages,sds,K,u=u))
 
+print( sum( UNscore(thetaMLE$par,ages,sds,K) ) )
+
+
 # get LRTs
 nTheta = 100
 thetas=seq(min(ages)-10*sds[1],min(ages)+0.1*sds[1],length=nTheta)
-LRs = rep(NA,nTheta)
+LRs = scores = rep(NA,nTheta)
 for (iTheta in 1:nTheta)
+{
   LRs[iTheta] = getLRT(thetas[iTheta],thetaMLE,ages=ages,sds=sds,K=K,u=u)
+  scores[iTheta] = sum(UNscore(thetas[iTheta],thetaMLE,ages=ages,sds=sds,K=K,u=u))
+}
+par(mfrow=c(2,1),mar=c(3,3,1,1),mgp=c(1.75,0.75,0))
 plot(LRs~thetas,type="l")
+plot(scores~thetas,type="l")
+abline(h=0,col="red")
+abline(v=thetaMLE$par,col="red")
 print(min(LRs))
 
 }

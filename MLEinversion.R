@@ -47,12 +47,26 @@ if (do.test)
   u=matrix(runif(B*length(ages)),ncol=B)
   #sd=rep(0,20)
 #  thetaInits = min(ages)+max(sds)*seq(-20,10,length=10)
-  thetaInits = min(ages) + mean(sds)*seq(-5,5,length=10)
+  thetaInits = min(ages) + mean(sds)*seq(-5,5,length=20)
   if(trans) thetaInits = -log(K-thetaInits)
   time.start = Sys.time()
+  q=0.025
   ft=regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
-                 q=0.025,iterMax=500,K=K,eps.sigma=sds, u=u, trans=trans,method="rq")
+                 q=q,iterMax=500,K=K,eps.sigma=sds, u=u, trans=trans,method="rq",a=0)
+  ftw=regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
+                  q=q,iterMax=500,K=K,eps.sigma=sds, u=u, trans=trans,method="rq",a=1)
+  ft2=regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
+                  q=q,iterMax=500,K=K,eps.sigma=sds, u=u, trans=trans,method="wrq",a=0)
+  ftp=regInversion(ages,getT=getTh,simulateData=simFn,thetaInits=thetaInits,
+                   q=q,iterMax=500,K=K,eps.sigma=sds, u=u, trans=trans,method="wrq",a=1)
   time.stop = Sys.time()
   if(trans) ft$theta=K-exp(-ft$theta)
   print(list(elapsed=time.stop-time.start,thetaEst=ft$theta,err=ft$err,iterations=ft$iter,converged=ft$converged))
+
+  print(c(ft$theta,ftw$theta,ft2$theta,ftp$theta))
+  par(mfrow=c(2,2))
+  plot(T~theta,data=ft$stats)
+  plot(T~theta,data=ftw$stats)
+  plot(T~theta,data=ft2$stats)
+  plot(T~theta,data=ftp$stats)
 }

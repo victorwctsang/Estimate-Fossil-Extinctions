@@ -1,7 +1,7 @@
 Simulation Results
 ================
 Victor Tsang
-29 June, 2023
+14 July, 2023
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
@@ -46,26 +46,26 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-12-20230628.RData'
+RESULTS_PATH <- 'data/simResults-48-20230712.RData'
 load(RESULTS_PATH)
 
 head(results)
 ```
 
-    ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
-    ## 1          0.0  MINMI 15009.80 16112.24 16322.70  6.699562e-05     6.699562e-05
-    ## 2          0.0   UNci 15693.48 16330.45 16330.45            NA     4.410696e-02
-    ## 3          0.0 UNwald 16330.45 16330.45 16330.45  0.000000e+00     1.952910e-02
-    ## 4          0.0 mleInv 14872.39 16330.45 16323.19  2.193451e-05     1.349376e+00
-    ## 5          0.5  MINMI 13151.27 14664.69 15110.42  1.551104e-02     1.551104e-02
-    ## 6          0.5   UNci 13758.10 14858.57 15420.02            NA     1.143003e-02
-    ##   B.lower B.point B.upper
-    ## 1      NA      NA      NA
-    ## 2     100     100     100
-    ## 3     100     100     100
-    ## 4     100     100     100
-    ## 5     100     100     100
-    ## 6     100     100     100
+    ##   n.samples error_factor  method    lower    point    upper point_runtime
+    ## 1        48            0   MINMI 14213.31 14865.94 15005.96  1.962185e-04
+    ## 2        48            0    UNci 14603.43 15011.23 15011.23            NA
+    ## 3        48            0  UNwald 15011.23 15011.23 15011.23  0.000000e+00
+    ## 4        48            0  mleInv 14240.79 15011.23 15007.03  2.217293e-05
+    ## 5        48            0 mleInv2 14152.44 15011.23 15007.91  1.597404e-05
+    ## 6        48            0 mleInvP 14847.26 15011.23 14889.51  1.502037e-05
+    ##   conf_int_runtime B.lower B.point B.upper
+    ## 1     0.0001962185      NA      NA      NA
+    ## 2     0.1367790699     100     100     100
+    ## 3     0.0058729649     100     100     100
+    ## 4     1.7902121544     100     100     100
+    ## 5     1.9885640144     100     100     100
+    ## 6     0.0789470673     100     100     100
 
 ``` r
 results %>%
@@ -78,30 +78,21 @@ results %>%
     ## `summarise()` has grouped output by 'method'. You can override using the
     ## `.groups` argument.
 
-    ## # A tibble: 20 × 5
-    ## # Groups:   method [4]
+    ## # A tibble: 35 × 5
+    ## # Groups:   method [7]
     ##    method error_factor point.pct_na lower.pct_na upper.pct_na
     ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 MINMI           0         15106.       13718.       15371.
-    ##  2 MINMI           0.5       15116.       13729.       15545.
-    ##  3 MINMI           1         15054.       13619.       15743.
-    ##  4 MINMI           2         15036.       13457.       16291.
-    ##  5 MINMI           4         14697.       12611.       17184.
-    ##  6 mleInv          0         15380.       13636.       15371.
-    ##  7 mleInv          0.5       15274.       13652.       15530.
-    ##  8 mleInv          1         15204.       13554.       15660.
-    ##  9 mleInv          2         15235.       13443.       15957.
-    ## 10 mleInv          4         15112.       12890.       16229.
-    ## 11 UNci            0         15380.       14578.       15380.
-    ## 12 UNci            0.5       15274.       14355.       15554.
-    ## 13 UNci            1         15205.       14148.       15647.
-    ## 14 UNci            2         15235.       13920.       15894.
-    ## 15 UNci            4         15110.       13290.       16133.
-    ## 16 UNwald          0         15380.       15380.       15380.
-    ## 17 UNwald          0.5       15274.       14890.       15657.
-    ## 18 UNwald          1         15204.       14621.       15788.
-    ## 19 UNwald          2         15235.       14377.       16093.
-    ## 20 UNwald          4         15111.       13818.       16403.
+    ##  1 MINMI           0         14944.       14296.       15082.
+    ##  2 MINMI           0.5       14880.       14204.       15350.
+    ##  3 MINMI           1         14792.       14035.       15779.
+    ##  4 MINMI           2         14573.       13559.       16733.
+    ##  5 MINMI           4         14096.       12383.       18927.
+    ##  6 mleInv          0         15088.       14302.       15082.
+    ##  7 mleInv          0.5       14961.       14197.       15202.
+    ##  8 mleInv          1         14880.       14028.       15244.
+    ##  9 mleInv          2         14701.       13670.       15233.
+    ## 10 mleInv          4         14397.       13082.       15216.
+    ## # … with 25 more rows
 
 # Point Estimates
 
@@ -135,61 +126,76 @@ for (i in 1:length(error_factors)) {
 performance.point.tbl[[1]]
 ```
 
-    ## # A tibble: 4 × 6
-    ##   error_factor method MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI      138   106          127     0.00008
-    ## 2            0 mleInv     258   380          113     0.00002
-    ## 3            0 UNci       258   380          113   NaN      
-    ## 4            0 UNwald     258   380          113     0
+    ## # A tibble: 7 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            0 MINMI        11   -56            8     0.00009
+    ## 2            0 mleInv       15    88            7     0.00002
+    ## 3            0 mleInv2      15    88            7     0.00003
+    ## 4            0 mleInvP      15    88            7     0.00003
+    ## 5            0 mleInvW      15    88            7     0.00003
+    ## 6            0 UNci         15    88            7   NaN      
+    ## 7            0 UNwald       15    88            7     0
 
 ``` r
 performance.point.tbl[[2]]
 ```
 
-    ## # A tibble: 4 × 6
-    ##   error_factor method MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 MINMI      180   116          167      0.0245
-    ## 2          0.5 mleInv     230   274          156      0.0103
-    ## 3          0.5 UNci       230   274          156    NaN     
-    ## 4          0.5 UNwald     230   274          156    196.
+    ## # A tibble: 7 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1          0.5 mleInv       27   -39           25      0.0369
+    ## 2          0.5 mleInv2      27   -39           25      0.0387
+    ## 3          0.5 mleInvP      27   -39           25      0.0392
+    ## 4          0.5 mleInvW      27   -39           25      0.0386
+    ## 5          0.5 UNci         27   -39           25    NaN     
+    ## 6          0.5 UNwald       27   -39           25    163.    
+    ## 7          0.5 MINMI        62  -120           48      0.125
 
 ``` r
 performance.point.tbl[[3]]
 ```
 
-    ## # A tibble: 4 × 6
-    ##   error_factor method MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 MINMI      243    54          241      0.0296
-    ## 2            1 mleInv     254   204          213      0.0100
-    ## 3            1 UNci       254   205          213    NaN     
-    ## 4            1 UNwald     254   204          213    298.
+    ## # A tibble: 7 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            1 mleInv       48  -120           34      0.0385
+    ## 2            1 mleInv2      48  -120           34      0.0427
+    ## 3            1 mleInvP      48  -120           34      0.0418
+    ## 4            1 mleInvW      48  -120           34      0.0416
+    ## 5            1 UNci         48  -120           34    NaN     
+    ## 6            1 UNwald       48  -120           34    230.    
+    ## 7            1 MINMI       180  -208          138      0.117
 
 ``` r
 performance.point.tbl[[4]]
 ```
 
-    ## # A tibble: 4 × 6
-    ##   error_factor method MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 mleInv     342   235          287      0.0106
-    ## 2            2 UNci       342   235          287    NaN     
-    ## 3            2 UNwald     342   235          287    438.    
-    ## 4            2 MINMI      409    36          409      0.0299
+    ## # A tibble: 7 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            2 mleInv      172  -299           84      0.0439
+    ## 2            2 mleInv2     172  -298           84      0.0439
+    ## 3            2 mleInvP     172  -298           84      0.0446
+    ## 4            2 mleInvW     172  -298           84      0.0449
+    ## 5            2 UNci        172  -298           84    NaN     
+    ## 6            2 UNwald      172  -298           84    338.    
+    ## 7            2 MINMI       619  -427          439      0.135
 
 ``` r
 performance.point.tbl[[5]]
 ```
 
-    ## # A tibble: 4 × 6
-    ##   error_factor method MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 mleInv     529   112          518      0.0113
-    ## 2            4 UNci       529   110          518    NaN     
-    ## 3            4 UNwald     530   111          519    660.    
-    ## 4            4 MINMI     1234  -303         1146      0.0319
+    ## # A tibble: 7 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            4 mleInvP     475  -603          112      0.0446
+    ## 2            4 UNwald      475  -603          112    487.    
+    ## 3            4 mleInv      476  -603          112      0.0434
+    ## 4            4 mleInv2     476  -603          112      0.0422
+    ## 5            4 mleInvW     476  -603          112      0.0445
+    ## 6            4 UNci        476  -603          112    NaN     
+    ## 7            4 MINMI      2843  -904         2036      0.137
 
 #### Pivot to make plots
 
@@ -201,21 +207,21 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
-    ## # A tibble: 80 × 4
+    ## # A tibble: 140 × 4
     ## # Groups:   Error [5]
-    ##    Error Method Metric      value
-    ##    <dbl> <chr>  <chr>       <dbl>
-    ##  1     0 MINMI  MSE_000 138.     
-    ##  2     0 MINMI  Bias    106.     
-    ##  3     0 MINMI  Var_000 127.     
-    ##  4     0 MINMI  Runtime   0.00008
-    ##  5     0 mleInv MSE_000 258.     
-    ##  6     0 mleInv Bias    380.     
-    ##  7     0 mleInv Var_000 113.     
-    ##  8     0 mleInv Runtime   0.00002
-    ##  9     0 UNci   MSE_000 258.     
-    ## 10     0 UNci   Bias    380.     
-    ## # … with 70 more rows
+    ##    Error Method  Metric      value
+    ##    <dbl> <chr>   <chr>       <dbl>
+    ##  1     0 MINMI   MSE_000  10.7    
+    ##  2     0 MINMI   Bias    -56.5    
+    ##  3     0 MINMI   Var_000   7.55   
+    ##  4     0 MINMI   Runtime   0.00009
+    ##  5     0 mleInv  MSE_000  15.0    
+    ##  6     0 mleInv  Bias     87.7    
+    ##  7     0 mleInv  Var_000   7.33   
+    ##  8     0 mleInv  Runtime   0.00002
+    ##  9     0 mleInv2 MSE_000  15.0    
+    ## 10     0 mleInv2 Bias     87.7    
+    ## # … with 130 more rows
 
 ### Plots
 
@@ -237,8 +243,11 @@ performance.point_estimates.plots = lapply(metrics,
                                     "GRIWM-corrected" = "darkgray",
                                     "GRIWM" = "maroon",
                                     "UNci" = "darkblue",
-                                    "UNwald"="red",
-                                    "mleInv" = "purple"))
+                                    "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -333,7 +342,9 @@ performance.point_estimates.plot.grid
 performance.CI <- results %>%
   filter(!is.na(conf_int_runtime)) %>%
   mutate(width = upper - lower,
-         contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
+#         contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
+#         contains_theta = ifelse(theta.true > lower, 1, 0)) %>%
+         contains_theta = ifelse(theta.true < upper, 1, 0)) %>%
   group_by(error_factor, method) %>%
   summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
             `Average Width` = round(mean(width, na.rm=TRUE), 2),
@@ -354,20 +365,20 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
-    ## # A tibble: 60 × 4
+    ## # A tibble: 105 × 4
     ##    Error Method Metric        value
     ##    <dbl> <chr>  <chr>         <dbl>
     ##  1   0   MINMI  Coverage   96      
-    ##  2   0   MINMI  Width    1653.     
-    ##  3   0   MINMI  Runtime     0.00008
-    ##  4   0.5 MINMI  Coverage   95.8    
-    ##  5   0.5 MINMI  Width    1816.     
-    ##  6   0.5 MINMI  Runtime     0.0245 
-    ##  7   1   MINMI  Coverage   93.5    
-    ##  8   1   MINMI  Width    2125.     
-    ##  9   1   MINMI  Runtime     0.0296 
-    ## 10   2   MINMI  Coverage   94.2    
-    ## # … with 50 more rows
+    ##  2   0   MINMI  Width     787.     
+    ##  3   0   MINMI  Runtime     0.00009
+    ##  4   0.5 MINMI  Coverage   94      
+    ##  5   0.5 MINMI  Width    1146.     
+    ##  6   0.5 MINMI  Runtime     0.125  
+    ##  7   1   MINMI  Coverage   95.5    
+    ##  8   1   MINMI  Width    1744.     
+    ##  9   1   MINMI  Runtime     0.117  
+    ## 10   2   MINMI  Coverage   98      
+    ## # … with 95 more rows
 
 ## Coverage Probability
 
@@ -382,7 +393,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -390,6 +401,9 @@ conf_int.coverage.plot <- performance.CI.long %>%
 ``` r
 conf_int.coverage.plot
 ```
+
+    ## Warning: ggrepel: 13 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
@@ -404,7 +418,7 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -427,7 +441,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple"))
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -511,7 +525,7 @@ for(iError in 1:nError)
 
 Um, yes! Not at , as expected, because this is a sample minimum.
 
-Quantiles also seem to be approx normal with no outliers (except at
+Quantiles also seem to be approx normal with no outliers (except at 0=4
 where it looks like there is some non-convergence).
 
 #### How good are standard error estimates?

@@ -1,37 +1,41 @@
 # Simulation Experiments - minmi vs UNloglik
 # Get estimates using simulated datasets
 
+#nSim=5000
 library(logger)
 library(rminmi) # version 0.1.1 or greater
 source('helpers-simulation-experiments.R')
-source('UNloglik.R')
 
-log_info("Loading synthetic dataset and configuration")
+#log_info("Loading synthetic dataset and configuration")
 
-#load("data/synthetic-data.RData")
-#load("data/synthetic-data-12-20230616.RData")
-#attach(synthetic.data.config)
+#load("data/synthetic-data-12-20230702.RData")
 
-alpha = 0.05
-
-methods.point_estimates = c(
+PerformminmiSimulations = function(whichSims,datasets,synthetic.data.config,alpha=0.05,
+                                   methods.point_estimates = c(
   # "Strauss"
   # ,"MLE"
   # ,"BA-MLE"
-)
+),
 methods.conf_int = c(
   "MINMI"
   , "UNci"
   , "UNwald"
   , "mleInv"
+  , "mleInv2"
+  , "mleInvP"
+  , "mleInvW"
   # ,"GRIWM"
   # ,"GRIWM-corrected"
 )
-
-n.samples = length(datasets[1,]$W[[1]])
-RESULTS_PATH = paste0("data/simResults-", n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
+)
+{
+  
+RESULTS_PATH = paste0("data/simResults-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), "_", max(whichSims),".RData")
+print(RESULTS_PATH)
 
 results = data.frame(
+  which_sim=double(),
+  n.samples=double(),
   error_factor=double(),
   method=factor(),
   lower=double(),
@@ -45,7 +49,7 @@ results = data.frame(
 )
 
 pilot.dates = datasets[1, "W"][[1]]
-A = 0.1 * (mean(fossil.sd))
+A = 0.1 * (mean(synthetic.data.config$fossil.sd))
 
 ############################################################
 # Run Trials
@@ -53,12 +57,12 @@ A = 0.1 * (mean(fossil.sd))
 log_info("Performing Simulations")
 
 start_time = Sys.time()
-for (i in 1:nSim) {
+for (i in whichSims) {
 #for (i in 1:nrow(datasets)) {
   log_info(sprintf("Dataset: %i/%i", i, nrow(datasets)))
   iter = datasets[i, ]
   W = as.numeric(iter$W[[1]])
-  sd = as.numeric(iter$error_factor * fossil.sd)
+  sd = as.numeric(iter$error_factor * synthetic.data.config$fossil.sd)
   
   log_info("Getting point estimates")
   for (method in methods.point_estimates) {
@@ -66,13 +70,15 @@ for (i in 1:nSim) {
       W = W,
       sd = sd,
       method = method,
-      K = K,
-      dating_error.mean = dating_error.mean
+      K = synthetic.data.config$K,
+      dating_error.mean = synthetic.data.config$dating_error.mean
     )
     log_info(sprintf("Time taken for %s: %.02f seconds", method, estimation$point_runtime))
     
     results = tibble::add_row(
       results,
+      which_sim=i,
+      n.samples=synthetic.data.config$n.samples,
       error_factor = iter$error_factor,
       method = method,
       point = estimation$point,
@@ -88,12 +94,14 @@ for (i in 1:nSim) {
       sd = sd,
       method = method,
       alpha = alpha,
-      K = K,
-      dating_error.mean = dating_error.mean
+      K = synthetic.data.config$K,
+      dating_error.mean = synthetic.data.config$dating_error.mean
     )
     log_info(sprintf("Time taken for %s: %.02f seconds", method, estimation$conf_int_runtime))
     results = tibble::add_row(
       results,
+      which_sim=i,
+      n.samples=synthetic.data.config$n.samples,
       error_factor = iter$error_factor,
       method = method,
       lower = estimation$lower,
@@ -113,4 +121,6 @@ log_info(sims.time)
 ## Save results
 log_info(sprintf("Saving results to %s", RESULTS_PATH))
 save(results, file = RESULTS_PATH)
-View(results)
+#View(results)
+invisible(results)
+}
