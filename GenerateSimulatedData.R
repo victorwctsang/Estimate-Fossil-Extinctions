@@ -14,6 +14,7 @@ options(nwarnings = 10000)
 synthetic.data.config <- list(
   seed = 168,
   theta.true = 15000,
+  sdFit=TRUE,
   K = 20000,
   n.trials = 1000,
   n.samples = 200,
@@ -23,7 +24,12 @@ synthetic.data.config <- list(
 
 SYNTH_DATA_PATH = paste0("data/synthetic-data-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
-set.seed(168)
+#set.seed(12) # for n=12
+#set.seed(24) # for n=24
+#set.seed(36) # for n=36
+set.seed(60) # for n=48
+#set.seed(60) # for n=60
+
 synthetic.data.config$n.error_factors <- length(synthetic.data.config$error_factors)
 
 mammoth_data = read_excel(path='data/fossildata.xlsx',
@@ -32,11 +38,15 @@ mammoth_data = read_excel(path='data/fossildata.xlsx',
                           col_names=c("age", "sd"), 
                           col_types=c('numeric', 'numeric'))
 
-if(synthetic.data.config$n.samples<=length(mammoth_data$sd))
-  synthetic.data.config$fossil.sd <- mammoth_data$sd[1:synthetic.data.config$n.samples]
-if(synthetic.data.config$n.samples>length(mammoth_data$sd))
-  synthetic.data.config$fossil.sd <- sample(mammoth_data$sd,synthetic.data.config$n.samples,replace=TRUE)
-
+if(synthetic.data.config$sdFit==TRUE)
+  synthetic.data.config$fossil.sd = glm(sd~age,family=Gamma("log"),data=mammoth_data)
+if(synthetic.data.config$sdFit==FALSE)
+{
+    if(synthetic.data.config$n.samples<=length(mammoth_data$sd))
+      synthetic.data.config$fossil.sd <- mammoth_data$sd[1:synthetic.data.config$n.samples]
+    if(synthetic.data.config$n.samples>length(mammoth_data$sd))
+      synthetic.data.config$fossil.sd <- sample(mammoth_data$sd,synthetic.data.config$n.samples,replace=TRUE)
+}
 attach(synthetic.data.config)
 
 # Generate synthetic data

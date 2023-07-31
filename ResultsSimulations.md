@@ -1,7 +1,11 @@
 Simulation Results
 ================
 Victor Tsang
+<<<<<<< Updated upstream
 16 June, 2023
+=======
+26 July, 2023
+>>>>>>> Stashed changes
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
@@ -50,12 +54,17 @@ library(latex2exp)
 load("data/synthetic-data.RData")
 attach(synthetic.data.config)
 
+<<<<<<< Updated upstream
 RESULTS_PATH <- 'data/simResults-100-20230616.RData'
+=======
+RESULTS_PATH <- 'data/simResults-sdFit-48-20230725.RData'
+>>>>>>> Stashed changes
 load(RESULTS_PATH)
 
 head(results)
 ```
 
+<<<<<<< Updated upstream
     ##   error_factor method    lower    point    upper point_runtime conf_int_runtime
     ## 1          0.0  MINMI 14830.29 14982.86 15016.26  7.891655e-05     7.891655e-05
     ## 2          0.0   UNci 14920.89 15017.52 15017.52            NA     5.306005e-02
@@ -70,6 +79,22 @@ head(results)
     ## 4     100     100     100
     ## 5     100     100     100
     ## 6     100     100     100
+=======
+    ##   which_sim n.samples error_factor  method    lower    point    upper
+    ## 1         1        48            0   MINMI 14612.72 14938.67 15008.60
+    ## 2         1        48            0    UNci 14807.56 15011.23 15011.23
+    ## 3         1        48            0  UNwald 15011.23 15011.23 15011.23
+    ## 4         1        48            0  mleInv 14643.79 15011.23 15009.02
+    ## 5         1        48            0 mleInvP 14991.34 15011.23 14971.79
+    ## 6         1        48            0 mleInvW 14596.66 15011.23 15003.58
+    ##   point_runtime conf_int_runtime B.lower B.point B.upper
+    ## 1  8.249283e-05     8.249283e-05      NA      NA      NA
+    ## 2            NA     4.850149e-03     100     100     100
+    ## 3  0.000000e+00     6.294250e-05     100     100     100
+    ## 4  2.574921e-05     2.905069e+00     100     100     100
+    ## 5  2.169609e-05     1.702976e-01     100     100     100
+    ## 6  2.098083e-05     2.105674e+00     100     100     100
+>>>>>>> Stashed changes
 
 ``` r
 results %>%
@@ -82,6 +107,7 @@ results %>%
     ## `summarise()` has grouped output by 'method'. You can override using the
     ## `.groups` argument.
 
+<<<<<<< Updated upstream
     ## # A tibble: 15 × 5
     ## # Groups:   method [3]
     ##    method error_factor point.pct_na lower.pct_na upper.pct_na
@@ -101,6 +127,23 @@ results %>%
     ## 13 UNwald          1         15032.       14824.       15240.
     ## 14 UNwald          2         15024.       14732.       15317.
     ## 15 UNwald          4         15009.       14611.       15461.
+=======
+    ## # A tibble: 30 × 5
+    ## # Groups:   method [6]
+    ##    method error_factor point.pct_na lower.pct_na upper.pct_na
+    ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
+    ##  1 MINMI           0         15025.       14705.       15094.
+    ##  2 MINMI           0.5       15015.       14645.       15289.
+    ##  3 MINMI           1         15013.       14520.       15492.
+    ##  4 MINMI           2         14979.       14213.       15846.
+    ##  5 MINMI           4         14824.       13509.       16449.
+    ##  6 mleInv          0         15097.       14709.       15094.
+    ##  7 mleInv          0.5       15039.       14664.       15241.
+    ##  8 mleInv          1         15034.       14469.       15241.
+    ##  9 mleInv          2         14979.       13997.       15113.
+    ## 10 mleInv          4         14766.       12944.       14691.
+    ## # … with 20 more rows
+>>>>>>> Stashed changes
 
 # Point Estimates
 
@@ -134,56 +177,116 @@ for (i in 1:length(error_factors)) {
 performance.point.tbl[[1]]
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
     ## 1            0 MINMI        3    14            2     0.00018
     ## 2            0 UNci         5    49            2   NaN      
     ## 3            0 UNwald       5    49            2     0
+=======
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            0 MINMI         9    25            8     0.00008
+    ## 2            0 mleInv       17    97            8     0.00003
+    ## 3            0 mleInvP      17    97            8     0.00003
+    ## 4            0 mleInvW      17    97            8     0.00003
+    ## 5            0 UNci         17    97            8   NaN      
+    ## 6            0 UNwald       17    97            8     0
+>>>>>>> Stashed changes
 
 ``` r
 performance.point.tbl[[2]]
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
     ## 1          0.5 UNci         9    32            8     NaN    
     ## 2          0.5 UNwald       9    32            8      76.3  
     ## 3          0.5 MINMI       47   -43           45       0.533
+=======
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1          0.5 mleInv       23    39           22      0.0409
+    ## 2          0.5 mleInvP      23    39           22      0.0399
+    ## 3          0.5 mleInvW      23    39           22      0.0398
+    ## 4          0.5 UNci         23    39           22    NaN     
+    ## 5          0.5 UNwald       23    39           22    121.    
+    ## 6          0.5 MINMI        25    15           25      0.114
+>>>>>>> Stashed changes
 
 ``` r
 performance.point.tbl[[3]]
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
     ## 1            1 UNci        15    32           14     NaN    
     ## 2            1 UNwald      15    32           14     106.   
     ## 3            1 MINMI      198  -104          187       0.559
+=======
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            1 mleInv       37    34           35      0.0390
+    ## 2            1 mleInvP      37    34           35      0.0389
+    ## 3            1 mleInvW      37    34           35      0.0391
+    ## 4            1 UNci         37    34           35    NaN     
+    ## 5            1 UNwald       37    34           35    178.    
+    ## 6            1 MINMI        55    13           55      0.107
+>>>>>>> Stashed changes
 
 ``` r
 performance.point.tbl[[4]]
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
     ## 1            2 UNci        25    24           24     NaN    
     ## 2            2 UNwald      25    24           24     149.   
     ## 3            2 MINMI      894  -187          860       0.586
+=======
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            2 mleInv       75   -21           74      0.0400
+    ## 2            2 mleInvP      75   -21           74      0.0394
+    ## 3            2 mleInvW      75   -21           74      0.0401
+    ## 4            2 UNci         75   -21           74    NaN     
+    ## 5            2 UNwald       75   -21           74    261.    
+    ## 6            2 MINMI       146   -21          146      0.112
+>>>>>>> Stashed changes
 
 ``` r
 performance.point.tbl[[5]]
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 3 × 6
     ##   error_factor method MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>    <dbl> <dbl>        <dbl>       <dbl>
     ## 1            4 UNci       171     9          171     NaN    
     ## 2            4 UNwald     171     9          171     217.   
     ## 3            4 MINMI     3280  -244         3223       0.634
+=======
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            4 mleInvP     211  -234          157      0.0364
+    ## 2            4 UNci        211  -234          156    NaN     
+    ## 3            4 mleInv      212  -234          157      0.0366
+    ## 4            4 mleInvW     212  -234          157      0.0367
+    ## 5            4 UNwald      212  -234          157    391.    
+    ## 6            4 MINMI       522  -176          492      0.123
+>>>>>>> Stashed changes
 
 #### Pivot to make plots
 
@@ -195,6 +298,7 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 60 × 4
     ## # Groups:   Error [5]
     ##    Error Method Metric      value
@@ -210,6 +314,23 @@ performance.point.long
     ##  9     0 UNwald MSE_000   4.72   
     ## 10     0 UNwald Bias     48.8    
     ## # … with 50 more rows
+=======
+    ## # A tibble: 120 × 4
+    ## # Groups:   Error [5]
+    ##    Error Method  Metric     value
+    ##    <dbl> <chr>   <chr>      <dbl>
+    ##  1     0 MINMI   MSE_000  8.93   
+    ##  2     0 MINMI   Bias    25.3    
+    ##  3     0 MINMI   Var_000  8.29   
+    ##  4     0 MINMI   Runtime  0.00008
+    ##  5     0 mleInv  MSE_000 17.4    
+    ##  6     0 mleInv  Bias    96.7    
+    ##  7     0 mleInv  Var_000  8.06   
+    ##  8     0 mleInv  Runtime  0.00003
+    ##  9     0 mleInvP MSE_000 17.4    
+    ## 10     0 mleInvP Bias    96.7    
+    ## # … with 110 more rows
+>>>>>>> Stashed changes
 
 ### Plots
 
@@ -230,7 +351,17 @@ performance.point_estimates.plots = lapply(metrics,
                                     "Strauss" = "orange",
                                     "GRIWM-corrected" = "darkgray",
                                     "GRIWM" = "maroon",
+<<<<<<< Updated upstream
                                     "UNci" = "darkblue"))
+=======
+                                    "UNci" = "darkblue",
+                                    "UNwald" = "red",
+                                    "mleInv" = "purple",
+                                    "mleInv2" = "plum",
+                                    "mleInvP"="orchid",
+                                    "mleInvW" = "pink",
+                                    "mleInvA1" = "brown"))
+>>>>>>> Stashed changes
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -340,6 +471,11 @@ performance.CI <- results %>%
   filter(!is.na(conf_int_runtime)) %>%
   mutate(width = upper - lower,
          contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
+<<<<<<< Updated upstream
+=======
+#         contains_theta = ifelse(theta.true > lower, 1, 0)) %>%
+#         contains_theta = ifelse(theta.true < upper, 1, 0)) %>%
+>>>>>>> Stashed changes
   group_by(error_factor, method) %>%
   summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
             `Average Width` = round(mean(width, na.rm=TRUE), 2),
@@ -360,6 +496,7 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
+<<<<<<< Updated upstream
     ## # A tibble: 45 × 4
     ##    Error Method Metric        value
     ##    <dbl> <chr>  <chr>         <dbl>
@@ -374,6 +511,22 @@ performance.CI.long
     ##  9   1   MINMI  Runtime     0.559  
     ## 10   2   MINMI  Coverage   94.1    
     ## # … with 35 more rows
+=======
+    ## # A tibble: 90 × 4
+    ##    Error Method Metric       value
+    ##    <dbl> <chr>  <chr>        <dbl>
+    ##  1   0   MINMI  Coverage  96.7    
+    ##  2   0   MINMI  Width    389.     
+    ##  3   0   MINMI  Runtime    0.00008
+    ##  4   0.5 MINMI  Coverage  94      
+    ##  5   0.5 MINMI  Width    644.     
+    ##  6   0.5 MINMI  Runtime    0.114  
+    ##  7   1   MINMI  Coverage  95.8    
+    ##  8   1   MINMI  Width    972.     
+    ##  9   1   MINMI  Runtime    0.107  
+    ## 10   2   MINMI  Coverage  96.6    
+    ## # … with 80 more rows
+>>>>>>> Stashed changes
 
 ## Coverage Probability
 
@@ -388,7 +541,12 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
+<<<<<<< Updated upstream
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red"))
+=======
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink",
+                                    "mleInvA1" = "brown"))
+>>>>>>> Stashed changes
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -397,6 +555,12 @@ conf_int.coverage.plot <- performance.CI.long %>%
 conf_int.coverage.plot
 ```
 
+<<<<<<< Updated upstream
+=======
+    ## Warning: ggrepel: 5 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
+
+>>>>>>> Stashed changes
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ## Widths
@@ -410,7 +574,12 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
+<<<<<<< Updated upstream
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
+=======
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink",
+                                    "mleInvA1" = "brown"))
+>>>>>>> Stashed changes
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -433,7 +602,12 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
+<<<<<<< Updated upstream
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red"))
+=======
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald"="red","mleInv" = "purple","mleInv2"="plum","mleInvP"="orchid","mleInvW" = "pink",
+                                    "mleInvA1" = "brown"))
+>>>>>>> Stashed changes
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth

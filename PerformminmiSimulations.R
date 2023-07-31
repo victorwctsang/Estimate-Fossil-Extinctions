@@ -23,7 +23,19 @@ methods.conf_int = c(
   "MINMI"
   , "UNci"
   , "UNwald"
+<<<<<<< Updated upstream
   # ,"GRIWM"
+=======
+  , "mleInv"
+#  , "mleInv2"
+#  , "mleInvS"
+, "mleInvST"
+, "mleInvW"
+  , "mleInvWS"
+, "mleInvWST"
+#, "mleInvA1"
+# ,"GRIWM"
+>>>>>>> Stashed changes
   # ,"GRIWM-corrected"
 )
 
@@ -43,21 +55,38 @@ results = data.frame(
   B.upper=double()
 )
 
+<<<<<<< Updated upstream
 pilot.dates = datasets[1, "W"][[1]]
 A = 0.1 * (mean(fossil.sd))
 
+=======
+>>>>>>> Stashed changes
 ############################################################
 # Run Trials
 ############################################################
 log_info("Performing Simulations")
 
 start_time = Sys.time()
+<<<<<<< Updated upstream
 #for (i in 1:100) {
 for (i in 1:nrow(datasets)) {
   log_info(sprintf("Dataset: %i/%i", i, nrow(datasets)))
   iter = datasets[i, ]
   W = as.numeric(iter$W[[1]])
   sd = as.numeric(iter$error_factor * fossil.sd)
+=======
+for (iSim in whichSims) {
+#for (iSim in 1:length(datasets$error_factor)) {
+  log_info(sprintf("Dataset: %i/%i", iSim, length(datasets$error_factor)))
+  W = as.numeric(datasets$W[,iSim])
+  sd = as.numeric(datasets$eps[,iSim])
+
+  # set sdCurrent as sds or sdModel, depending on inputs
+  sdCurrent = synthetic.data.config$fossil.sd
+  if(datasets$error_factor[iSim]==0) sdCurrent = rep(0,synthetic.data.config$n.samples)
+  if(inherits(sdCurrent,"glm"))
+    sdCurrent$coefficients[1] = synthetic.data.config$fossil.sd$coefficients[1] + log(datasets$error_factor[iSim])
+>>>>>>> Stashed changes
   
   log_info("Getting point estimates")
   for (method in methods.point_estimates) {
@@ -72,7 +101,13 @@ for (i in 1:nrow(datasets)) {
     
     results = tibble::add_row(
       results,
+<<<<<<< Updated upstream
       error_factor = iter$error_factor,
+=======
+      which_sim=iSim,
+      n.samples=synthetic.data.config$n.samples,
+      error_factor = datasets$error_factor[iSim],
+>>>>>>> Stashed changes
       method = method,
       point = estimation$point,
       point_runtime = estimation$point_runtime,
@@ -87,13 +122,25 @@ for (i in 1:nrow(datasets)) {
       sd = sd,
       method = method,
       alpha = alpha,
+<<<<<<< Updated upstream
       K = K,
       dating_error.mean = dating_error.mean
+=======
+      K = synthetic.data.config$K,
+      dating_error.mean = synthetic.data.config$dating_error.mean,
+      sd_model = sdCurrent
+>>>>>>> Stashed changes
     )
     log_info(sprintf("Time taken for %s: %.02f seconds", method, estimation$conf_int_runtime))
     results = tibble::add_row(
       results,
+<<<<<<< Updated upstream
       error_factor = iter$error_factor,
+=======
+      which_sim=iSim,
+      n.samples=synthetic.data.config$n.samples,
+      error_factor = datasets$error_factor[iSim],
+>>>>>>> Stashed changes
       method = method,
       lower = estimation$lower,
       point = estimation$point,
