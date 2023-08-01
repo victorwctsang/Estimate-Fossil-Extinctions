@@ -21,8 +21,8 @@ for(iTheta in 1:length(thetas))
 {
   for(iData in 1:length(W))
   {
-    lls[[1]][iData,iTheta] = UNloglik(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K,u=as.matrix(u[iData,]))
-    scores[[1]][iData,iTheta] = UNscore(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K,u=as.matrix(u[iData,]))
+    lls[[1]][iData,iTheta] = UNaltloglik(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K)
+    scores[[1]][iData,iTheta] = UNaltscore(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K)
   }
 }
 
@@ -41,8 +41,8 @@ for(i in 2:5)
   {
     for(iData in 1:length(W))
     {
-      lls[[i]][iData,iTheta] = UNloglik(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K,u=as.matrix(u[iData,]))
-      scores[[i]][iData,iTheta] = UNscore(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K,u=as.matrix(u[iData,]))
+      lls[[i]][iData,iTheta] = UNaltloglik(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K)
+      scores[[i]][iData,iTheta] = UNaltscore(thetas[iTheta],W[iData],sd[iData],K=synthetic.data.config$K)
     }
   }
 }
