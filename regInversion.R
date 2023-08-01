@@ -1,4 +1,4 @@
-regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=1000, eps=1.e-5, method="rq", a=0, stats = NULL, ...)
+regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=1000, eps=1.e-5, method="rq", aMean=0, stats = NULL, ...)
 {
   t_obs = getT(data, ...)
 
@@ -29,8 +29,12 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
         err = Inf
       else
       {
-        if(coef(qfit)[2]>0) # find the value matching to observed t if decent fit
-          err = (prEst[3]-prEst[2])/qnorm(0.975)/2/coef(qfit)[2]
+        if(method=="rq2")
+          grad = 2*coef(qfit)[2]*newtheta + coef(qfit)[3]
+        else
+          grad = coef(qfit)[2]
+        if(grad>0) # find the value matching to observed t if decent fit
+          err = (prEst[3]-prEst[2])/qnorm(0.975)/2/grad
         else
           err = Inf
       }
@@ -46,10 +50,13 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
     }
     getErr = function(newtheta,qfit,t_obs,q)
     {
-      if(coef(qfit)[2]>0) # find the value matching to observed t if decent fit
+      if(coef(qfit)[2]>0 & qfit$converged) # find the value matching to observed t if decent fit
       {
-        prEst = predict(qfit,newdata=list(theta=newtheta),se.fit=TRUE)
-        err = prEst$se.fit/coef(qfit)[2]
+        prEst = try(predict(qfit,newdata=list(theta=newtheta),se.fit=TRUE),silent=TRUE)
+        if(inherits(prEst,"try-error"))
+          err = Inf
+        else
+          err = prEst$se.fit/coef(qfit)[2]
       }
       else 
         err = Inf
@@ -63,7 +70,7 @@ regInversion = function(data, getT, simulateData, thetaInits, q=0.5, iterMax=100
   while(isConverged == FALSE & iter<iterMax)
   {
     iter=iter+1
-    thetaNew = getThetaSim(iter,thetaEst=res$theta,thetaSims=stats$theta,a=a)
+    thetaNew = getThetaSim(iter,thetaEst=res$theta,thetaSims=stats$theta,aMean=aMean)
     newDat = simulateData(thetaNew, ...)
     Titer = getT(newDat, ...)
     if(is.na(Titer)|Titer==Inf) 
@@ -142,15 +149,15 @@ updateTheta = function(stats,t_obs,q,qfit=NULL,method="rq",getPred=getPred,scree
      theta = stats$thetaEst[nrow(stats)]*(1+runif(1,-0.01,0.01))
   # don't accept any crazy shit... move them back towards the data
   # theta = noOutliers(theta,stats$theta)
-  return(list(theta=theta,qfit=ft))
+  return(list(theta=c(theta,use.names=FALSE),qfit=ft))
 }
 
-getThetaSim = function(iter,thetaEst,thetaSims,a)
+getThetaSim = function(iter,thetaEst,thetaSims,aMean)
 {
-  # a tells us how much to weight mean of all obs compared to current obs
-  thetaNew = (a*iter+1-a)*thetaEst - a*sum(thetaSims)
+  # aMean tells us how much to weight mean of all obs compared to current obs
+  thetaNew = (aMean*iter+1-aMean)*thetaEst - aMean*sum(thetaSims)
   # put bounds on thetaNew so no crazy shit
-  if(a>0) thetaNext = noOutliers(thetaNew,thetaSims)
+  if(aMean>0) thetaNext = noOutliers(thetaNew,thetaSims)
   thetaNext=thetaNew
   return(thetaNext)
 }
