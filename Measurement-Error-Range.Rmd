@@ -1,0 +1,135 @@
+---
+title: "Measurement Error Range"
+author: "Victor Tsang"
+date: "2023-07-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r}
+fossildata[[2]][!is.na(fossildata[[2]][, 2]),]
+```
+
+
+Task: Find out what is a typical Measurement Error variation (standard deviation) as a proportion of fossil range ($K - \theta$)
+
+We use the fossil data provided by Cooper. First define the variables (by hand) for pulling the data from the sheet.
+
+```{r fossildata}
+library(readxl)
+library(tidyverse)
+
+sheets <- c("ArcSimAL",
+  "BisPriscus.ext",
+  "BisonXEur.ext+inv",
+  "CervusElaEBer",
+  "Coelod.ant.Brit",
+  "Coelod.ant.Russ",
+  "Coelod.ant.Wrang",
+  "CrocCroc.Eur",
+  "EquusCabEBer",
+  "EquusFraEBer",
+  "MammothEurCladeIII",
+  "MammothPrimEBer",
+  "Mammoths Eurasian",
+  "MastodonNA",
+  "Megaloceros",
+  "NeandertalEur",
+  "OvibosMos",
+  "Paleolox.Japan",
+  "Panth.leo.spe.Ber.Ext",
+  "Panth.leo.spe.NW.ext",
+  "Panth.leo.spe.OW.ext",
+  "Saiga.tat.EBer",
+  "Saiga.tat.Ger",
+  "Ursus.spe.Ger2.ext",
+  "Ursus.spe.Eur.ext")
+
+ranges <- c("M3:N19",
+  "M3:N15",
+  "M4:N9",
+  "M3:N59",
+  "M3:N29",
+  "M3:N197",
+  "M3:N11",
+  "M3:N81",
+  "M3:N28",
+  "M3:N23",
+  "M3:N21",
+  "M3:N36",
+  "M3:N205",
+  "K4:L24",
+  "M3:N48",
+  "M3:N147",
+  "M3:N8",
+  "M3:N13",
+  "M3:N12",
+  "M3:N25",
+  "M3:N19",
+  "M3:N11",
+  "M3:N10",
+  "M3:N17",
+  "M3:N33")
+
+sheet_ranges <- cbind(sheets, ranges)
+print(sheet_ranges)
+```
+
+Next, read the excel file
+
+```{r}
+
+data <- lapply(1:nrow(sheet_ranges), function(i) {
+  sheet_name <- sheet_ranges[i, "sheets"]
+  cell_range <- sheet_ranges[i, "ranges"]
+  
+  # Read the specified cell range from the sheet
+  sheet_data <- read_excel(path='fossildata.xlsx', sheet = sheet_name, range = cell_range, col_names = c('age', 'sd'))
+  
+  # Add a column for the sheet name, K, theta_hat, range, and sd_prop_range:
+  sheet_data <- sheet_data %>%
+    filter(!is.na(age) & !is.na(sd)) %>%
+    mutate(sheet = sheet_name,
+           K = max(age),
+           theta_hat = min(age),
+           range = K - theta_hat,
+           sd_prop_range = sd / range)
+  
+  return(sheet_data)
+})
+
+# Combine all the data frames into a single dataframe
+df <- do.call(rbind, data)
+
+head(df)
+```
+
+Inspect the measurement error variation (sd) as a proportion of fossil record range.
+
+```{r}
+hist(df$sd_prop_range)
+```
+
+```{r}
+summary(df$sd_prop_range)
+```
+
+```{r, fig.height=4}
+df %>%
+  ggplot(aes(x = sheet, y = sd_prop_range)) +
+  geom_violin() +
+  labs(x = "Sheet", y = "sd_prop_range") +
+  theme_bw() +
+  coord_flip()
+```
+
+
+## Conclusion
+
+Generally speaking, standard deviation is a very small proportion of range. The median proportion is **3.5%**. The 75th percentile is **7.8%**. We have a very right skewed distribution (huge lengths of time and our measurement error is small relative to that.)
+
+This is an argument for `MLE Inversion` and to a lesser extent `minmi` (regularity conditions aside). This is also an argument **against** Solow's method, which performs poorly in small measurement error scenarios.
