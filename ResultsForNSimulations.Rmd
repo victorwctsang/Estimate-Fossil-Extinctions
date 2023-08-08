@@ -40,10 +40,10 @@ library(gridExtra)
 library(latex2exp)
 
 
-load("data/synthetic-data.RData")
+load("data/synthetic-data-12-20230808.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-12-20230714.RData'
+RESULTS_PATH <- 'data/simResults-12-20230808.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -55,7 +55,7 @@ n.samples=c(12,24,36,48,60)
 #n.samples=c(12,24,36,48)
 for (iSample in 1:length(n.samples))
 {
-  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230714.RData")
+  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230808.RData")
   load(RESULTS_PATH)
   all_results=tibble::add_row(
       all_results,
@@ -145,12 +145,12 @@ performance.point_estimates.plots = lapply(metrics,
                                     "Strauss" = "orange",
                                     "GRIWM-corrected" = "darkgray",
                                     "GRIWM" = "maroon",
-                                    "UNci" = "darkblue",
-                                    "UNwald" = "red",
-                                    "mleInv" = "purple",
+                                    "reginvUNci" = "darkblue",
+                                    "reginvUNwald" = "red",
+                                    "mlereginv" = "purple",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
-                                    "mleInvW" = "pink"))
+                                    "mleInvAW" = "pink"))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -222,11 +222,13 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Coverage probability", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci" = "darkblue", "UNwald" = "red",
-                                    "mleInv" = "purple",
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
+                                "reginvUNci" = "darkblue",
+                                    "reginvUNwald" = "red",
+                                    "mlereginv" = "purple",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
-                                    "mleInvW" = "pink"))
+                                    "mleInvAW" = "pink"))
     
 
 conf_int.coverage.plot
@@ -243,11 +245,13 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald" = "red",
-                                    "mleInv" = "purple",
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
+                                "reginvUNci" = "darkblue",
+                                    "reginvUNwald" = "red",
+                                    "mlereginv" = "purple",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
-                                    "mleInvW" = "pink"))
+                                    "mleInvAW" = "pink"))
     
 
 conf_int.width.plot
@@ -265,11 +269,13 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", "UNci"="darkblue", "UNwald" = "red",
-                                    "mleInv" = "purple",
+  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
+                                "reginvUNci" = "darkblue",
+                                    "reginvUNwald" = "red",
+                                    "mlereginv" = "purple",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
-                                    "mleInvW" = "pink"))
+                                    "mleInvAW" = "pink"))
     
 
 conf_int.runtime.plot
@@ -287,44 +293,3 @@ conf_int.runtime.plot
 3. Runtime
     1. MLE_INV takes ages, MINMI a bit longer(!) Although I was using B=100, might have been fairer to compare at B=100 instead of doing choose B first
 
-#### Extra bonus: is the sampling distribution of MLE Gaussian for $\sigma>0$?
-
-```{r distTheta}
-errors=unique(results$error_factor)
-nError=length(errors)
-par(mfrow=c(5,3),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
-for(iError in 1:nError)
-{
-  tmp=results%>%filter(method=="UNci" & error_factor==errors[iError]) %>% select(lower,point,upper)
-  hist(tmp$lower,xlab="theta_lower",ylab="",main="")
-  mtext(paste0("error_fac=",errors[iError]),2,line=2,font=2,cex=0.8)
-  if(iError==1)
-    mtext("theta_lower",3,font=2,cex=0.8)
-  hist(tmp$point,xlab="theta_hat",ylab="",main="")
-  if(iError==1)
-    mtext("theta_hat",3,font=2)
-  hist(tmp$point,xlab="theta_upper",ylab="",main="")
-  if(iError==1)
-    mtext("theta_upper",3,font=2)
-}
-```
-
-Um, yes! Not at `r error_factor=0`, as expected, because this is a sample minimum.
-
-Quantiles also seem to be approx normal with no outliers (except at `r error_factor=4` where it looks like there is some non-convergence).
-
-#### How good are standard error estimates?
-
-```{r waldSE}
-errors=unique(results$error_factor)
-nError=length(errors)
-par(mfrow=c(3,2),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
-for(iError in 1:nError)
-{
-  tmp=results%>%filter(method=="UNwald" & error_factor==errors[iError]) %>% select(point,point_runtime)
-  nError=length(errors)
-  hist(tmp$point_runtime,xlab="SE",ylab="",main="")
-  mtext(paste0("error_fac=",errors[iError]),2,line=2,font=2,cex=0.8)
-  abline(v=sd(tmp$point),col="red")
-}
-```

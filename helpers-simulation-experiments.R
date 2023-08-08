@@ -1,8 +1,8 @@
-source("MLEinversion.R")
+#source("MLEinversion.R")
+library(reginv)
 
 library(readxl)
-
-source("GRIWM.R")
+#source("GRIWM.R")
 
 getFossilData = function (path, sheet, range, col_names, col_types) {
   read_excel(path, sheet, range, col_names, col_types)
@@ -70,6 +70,51 @@ simulate_datasets = function (config) {
   return(dataset.df)
 }
 
+simulate_dataset = function (theta.true,
+                             K,
+                             eps.mean,
+                             eps.sigma,
+                             n) {
+  
+  eps = eps.mean
+  if (any(eps.sigma != 0)) {
+    eps = extraDistr::rtnorm(n, mean = eps.mean, sd = eps.sigma, a=-Inf, b=(K-theta.true))
+  }
+  X = runif(n, min = theta.true, max = K-eps)
+  
+  W = X + eps
+  return(W)
+}
+
+simulate_datasets = function (config) {
+  df.length = config$n.trials * config$n.error_factors
+  
+  dataset.df = data.frame(
+    error_factor = rep(config$error_factor, length.out = df.length)
+  )
+  
+  if(config$method=="reginv")
+  {
+    W = lapply(dataset.df$error_factor, 
+               function(e) rfossil(n = config$n.samples, theta = config$theta.true,
+                                            K = config$K,
+                                            sd = e * config$fossil.sd
+                                            ))
+  }
+  else
+  {
+    W = lapply(dataset.df$error_factor, 
+             function(e) simulate_dataset(theta.true = config$theta.true,
+                                          K = config$K,
+                                          eps.mean = config$dating_error.mean,
+                                          eps.sigma = e * config$fossil.sd,
+                                          n = config$n.samples))
+  
+  }
+  dataset.df$W = W
+  return(dataset.df)
+}
+
 estimate_extinction = function (W, sd, method, K, dating_error.mean) {
   estimate = NA
   runtime = NA
@@ -118,6 +163,18 @@ estimate_conf_int = function (W,
       alpha = alpha,
       K = K
     ),
+    reginvUNci = do_reginvUNci(ages = W,
+                   sd = sd,
+                   alpha = alpha,
+                   K = K,
+                   wald=FALSE
+    ),
+    reginvUNwald = do_reginvUNci(ages = W,
+                               sd = sd,
+                               alpha = alpha,
+                               K = K,
+                               wald=TRUE
+    ),
     UNci = do_UNci(theta.true,
       ages = W,
       sd = sd,
@@ -131,8 +188,27 @@ estimate_conf_int = function (W,
                    alpha = alpha,
                    K = K,
                    wald=TRUE
-    )
-    ,
+    ),
+    UNciA = do_UNci(theta.true,
+                   ages = W,
+                   sd = sd,
+                   alpha = alpha,
+                   K = K,
+                   wald=FALSE,
+                   alt=TRUE
+    ),
+    UNwaldA = do_UNci(theta.true,
+                     ages = W,
+                     sd = sd,
+                     alpha = alpha,
+                     K = K,
+                     wald=TRUE,
+                     alt=TRUE
+    ),
+    mlereginv = do_reginv(ages=W,
+                          sd=sd,
+                          alpha=alpha,
+                          K=K),
     mleInv = do_mleInv(ages = W,
                      sd = sd,
                      alpha = alpha,
@@ -154,7 +230,16 @@ estimate_conf_int = function (W,
                         sd = sd,
                         alpha = alpha,
                         K = K,
-                        method="wrq")
+                        method="wrq"),
+    mleInvA = do_mleInvAlt(ages = W,
+                           sd = sd,
+                           alpha=alpha,
+                           K=K),
+    mleInvAW = do_mleInvAlt(ages = W,
+                           sd = sd,
+                           alpha=alpha,
+                           K=K,
+                           method="wrq")
   )
   return(estimate)
 }
@@ -224,12 +309,15 @@ griwm = function(alpha,
   )
 }
 
-do_UNci = function (theta, ages, sd, K, alpha, wald=wald) {
+do_UNci = function (theta, ages, sd, K, alpha, wald=wald, alt=FALSE) {
   start_time = Sys.time()
   
   results = tryCatch(
     {
-      getUNci(min(ages), ages, sd, K, alpha=alpha, wald=wald)
+      if(alt)
+        getUNciAlt(min(ages), ages, sd, K, alpha=alpha, wald=wald)
+      else
+        getUNci(min(ages), ages, sd, K, alpha=alpha, wald=wald)
     },
     error = function(cond) {
       message("Something went wrong with `getUNci`:")
@@ -253,7 +341,7 @@ do_UNci = function (theta, ages, sd, K, alpha, wald=wald) {
   )
 }
 
-do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans, method="rq")
+do_mleInv = function(ages, sd, K, alpha, iterMax=1000, B=100, trans=trans, method="rq")
 {
 
   u = matrix(runif(B*length(ages)),ncol=B)
@@ -282,6 +370,88 @@ do_mleInv = function(ages, sd, K, alpha, iterMax=500, B=100, trans=trans, method
       B.lower = B,
       B.point = B,
       B.upper = B
+    )
+  )
+}
+
+do_mleInvAlt = function(ages, sd, K, alpha, iterMax=1000, method="rq")
+{
+  
+  pt.start_time = Sys.time()
+  ft.mle = getThetaAlt(ages=ages, theta=min(ages), eps.sigma=sd, K=K)
+  pt.runtime = calculate_tdiff(pt.start_time, Sys.time())
+  
+  ci.start_time = Sys.time()
+  
+  stepSize = max(1/sqrt(-ft.mle$hessian), IQR(ages)*0.1, na.rm=TRUE)
+  thetaInits = ft.mle$par + stepSize*seq(-5,5,length=20)
+  ft.lo = regInversion(ages,getT=getThAlt,simulateData=simFnAlt,thetaInits=thetaInits,
+                       q=alpha/2,iterMax=iterMax,K=K,eps.sigma=sd, method=method)
+  ft.hi = regInversion(ages,getT=getThAlt,simulateData=simFnAlt,thetaInits=thetaInits,
+                       q=1-alpha/2, iterMax=iterMax, K=K,eps.sigma=sd, method=method)
+  ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
+  return(
+    list(
+      lower = ft.lo$theta,
+      point = ft.mle$par,
+      upper = ft.hi$theta,
+      point_runtime = pt.runtime,
+      conf_int_runtime = ci.runtime,
+      B.lower = NA,
+      B.point = NA,
+      B.upper = NA
+    )
+  )
+}
+
+do_reginv = function(ages, sd, K, alpha, iterMax=1000)
+{
+  pt.start_time = Sys.time()
+  ft.mle = mle_fossil(ages=ages, sd=sd, K=K,alpha=NULL)
+  pt.runtime = calculate_tdiff(pt.start_time, Sys.time())
+  
+  ci.start_time = Sys.time()
+  
+  fts = reginv_fossil(ages,sd,K,q=c(alpha/2,1-alpha/2),iterMax=iterMax)
+  ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
+  return(
+    list(
+      lower = fts$theta[1],
+      point = ft.mle$mle,
+      upper = fts$theta[2],
+      point_runtime = pt.runtime,
+      conf_int_runtime = ci.runtime,
+      B.lower = NA,
+      B.point = NA,
+      B.upper = NA
+    )
+  )
+}
+
+do_reginvUNci = function (ages, sd, K, alpha, wald=wald) {
+  start_time = Sys.time()
+  
+  results = tryCatch(
+    {
+      mle_fossil(ages, sd, K, alpha=alpha, wald=wald)
+    },
+    error = function(cond) {
+      message("Something went wrong with `mle_fossil`:")
+      message(cond)
+      return(list())
+    }
+  )
+  runtime = calculate_tdiff(start_time, Sys.time())
+  return(
+    list(
+      lower = as.numeric(results$theta["lower"]),
+      point = as.numeric(results$theta["mle"]),
+      upper = as.numeric(results$theta["upper"]),
+      point_runtime = results$se,
+      conf_int_runtime = runtime,
+      B.lower = NA,
+      B.point = NA,
+      B.upper = NA
     )
   )
 }

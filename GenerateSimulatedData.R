@@ -13,21 +13,18 @@ options(nwarnings = 10000)
 # Configure synthetic data generation
 synthetic.data.config <- list(
   seed = 60,
-  theta.true = 15000,
+  theta.true = 10000,
   K = 20000,
   n.trials = 1000,
   n.samples = 60,
-  error_factors = c(0, 0.5, 1, 2, 4),
-  dating_error.mean = 0
+  error_factors = c(0, 0.5, 1, 2, 4, 8),
+  dating_error.mean = 0,
+  method="reginv"
 )
 
 SYNTH_DATA_PATH = paste0("data/synthetic-data-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")
 
-#set.seed(12) # for n=12
-#set.seed(24) # for n=24
-#set.seed(36) # for n=36
-#set.seed(48) # for n=48
-set.seed(60) # for n=60
+set.seed(synthetic.data.config$seed) 
 
 synthetic.data.config$n.error_factors <- length(synthetic.data.config$error_factors)
 
@@ -43,6 +40,7 @@ if(synthetic.data.config$n.samples>length(mammoth_data$sd))
   synthetic.data.config$fossil.sd <- sample(mammoth_data$sd,synthetic.data.config$n.samples,replace=TRUE)
 
 attach(synthetic.data.config)
+synthetic.data.config$fossil.sd = rep((K-theta.true)/100,synthetic.data.config$n.samples) # 1% of range
 
 # Generate synthetic data
 datasets <- simulate_datasets(synthetic.data.config)

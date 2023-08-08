@@ -66,55 +66,94 @@ UNscore = function(theta,ages,sds,K,B=100,u=matrix(runif(B*length(ages)),ncol=B)
   return(dlUN)
 }
 
-rUN = function(n, theta, sds, K, tol=sqrt(.Machine$double.eps))
+pUNeps = function(eps,u,theta,K,eps.sigma,n=length(eps.sigma),tol=sqrt(.Machine$double.eps))
+# function to compute marginal cdf of epsilon, minus u, to solve for eps
+{
+  # get CDF denominator
+  F.K    = pnorm(K - theta, mean = 0, sd = eps.sigma)
+  f.K    = dnorm(K - theta, mean = 0, sd = eps.sigma)
+  C      = (K-theta) * F.K + eps.sigma^2 * f.K
+
+  # get CDF-u
+  F.eps  = pnorm(eps, mean = 0, sd = eps.sigma)
+  f.eps  = dnorm(eps, mean = 0, sd = eps.sigma)
+  cdfEps = ( (K-theta)*F.eps + eps.sigma^2*f.eps ) / C - u
+  return(cdfEps)
+}
+  
+rUN = function(theta, K, eps.sigma, n=length(eps.sigma), tol=sqrt(.Machine$double.eps),nIter=50)
 {
   #ensure sds is the right length
-  nSD = length(sds)
+  nSD = length(eps.sigma)
   if(nSD!=n)
   {
-    sds = rep(sds,length=n)
-    warning("length of 'sds' is not equal to 'n' so will extend 'sds' as needed.")
+    eps.sigma = rep(eps.sigma,length=n)
+    warning("length of 'eps.sigma' is not equal to 'n' so will extend 'eps.sigma' as needed.")
   }
-  if(nSD==1)  sds = rep(sds,length=n)
+  if(nSD==1)  eps.sigma = rep(eps.sigma,length=n)
   
   # compute C and u
-  F.K = pnorm(K - theta, mean = 0, sd = sds)
-  f.K = dnorm(K - theta, mean = 0, sd = sds)
-  C = (K-theta) * F.K + sds^2 * f.K
+  F.K = pnorm(K - theta, mean = 0, sd = eps.sigma)
+  f.K = dnorm(K - theta, mean = 0, sd = eps.sigma)
+  C = (K-theta) * F.K + eps.sigma^2 * f.K
   u = runif(n)
   uOnC = u * C
   
   # now get cracking finding eps
-  eps = quantU=rep(0,n) # starting estimate
-  epsOld = qnorm(u,mean=0,sd=sds)
-  isDiff = sds!=0 #only do the below when sds is non-zero
-  while(any(isDiff))
+  epsOld = qnorm(u,mean=0,sd=eps.sigma) # starting estimate
+  eps = quantU = rep(0,n) 
+  quantUMax = pnorm(K-theta,sd=eps.sigma) # quantU can't get any larger than this or eps will be larger than K-theta
+  iter=0
+  isDiff = eps.sigma!=0 #only do the below when eps.sigma is non-zero
+  while(any(isDiff) & iter<nIter)
   {
-    quantU[isDiff] = ( uOnC[isDiff] - sds[isDiff]^2*dnorm(epsOld[isDiff], mean = 0, sd = sds[isDiff]) ) / (K-theta)
-    eps[isDiff] = qnorm(quantU[isDiff], mean=0, sd=sds[isDiff])
-    isDiff = abs(eps-epsOld)>tol
-    epsOld[isDiff]=eps[isDiff]
+    quantU[isDiff] = ( uOnC[isDiff] - eps.sigma[isDiff]^2*dnorm(epsOld[isDiff], mean = 0, sd = eps.sigma[isDiff]) ) / (K-theta)
+    quantU[isDiff] = pmax(quantU[isDiff], sqrt(tol)) # correction for wild estimates sending quantU negative
+    quantU[isDiff] = pmin(quantU[isDiff], quantUMax[isDiff]-sqrt(tol)) # correction for wild estimates sending eps over K-theta
+    eps[isDiff]    = qnorm(quantU[isDiff], mean=0, sd=eps.sigma[isDiff])
+    epsDiff        = abs(eps-epsOld)
+    isDiff         = epsDiff>tol
+    epsOld[isDiff] = eps[isDiff]
+    iter           = iter+1
   }
-  
+
+  if(iter==nIter)
+  {
+    for(iObs in which(isDiff))
+    {
+      epsTry = try( uniroot( pUNeps, interval=c(qnorm(sqrt(tol),mean=0,sd=eps.sigma[iObs]),K-theta),u=u[iObs],theta=theta,eps.sigma=eps.sigma[iObs],K=K,extendInt="upX") )
+      if(inherits(epsTry,"try-error")==FALSE)
+      {
+        eps[iObs] = epsTry$root
+        isDiff[iObs] = FALSE
+      }
+    }
+    if(any(isDiff)) warning(paste0("non-convergence for ",sum(isDiff)," observations"))
+  }
   X = runif(n,min=theta,max=K-eps)
   W = X + eps
   return(W)
 }
 
 # find MLE
-getTheta = function(ages, theta=min(ages), eps.sigma, K, B=100, u=matrix(runif(B*length(ages)),ncol=B), method="UN" )
+getTheta = function(ages, theta=min(ages), eps.sigma, K, B=100, u=matrix(runif(B*length(ages)),ncol=B) )
 {
   if(all(eps.sigma==0))
     thetaMLE = list( par=min(ages), value=length(ages)*log(1/(K-min(ages))), hessian=-Inf )
   else
-    {
-      if(method=="UN")
-        thetaMLE = optim(theta,UNloglik,ages=ages,sds=eps.sigma,K=K,u=u,method="Brent",lower=min(theta*c(0,2)),upper=max(theta*c(0,2)),control=list(trace=TRUE,fnscale=-1),hessian=TRUE)
-      else
-        thetaMLE = optim(theta,UNaltloglik,ages=ages,sds=eps.sigma,K=K,method="Brent",lower=min(theta*c(0,2)),upper=max(theta*c(0,2)),control=list(trace=TRUE,fnscale=-1),hessian=TRUE)
-    }
+    thetaMLE = optim(theta,UNloglik,ages=ages,sds=eps.sigma,K=K,u=u,method="Brent",lower=min(theta*c(0,2)),upper=max(theta*c(0,2)),control=list(trace=TRUE,fnscale=-1),hessian=TRUE)
   return(thetaMLE)
 }
+
+getThetaAlt = function(ages, theta=min(ages), eps.sigma, K )
+{
+  if(all(eps.sigma==0))
+    thetaMLE = list( par=min(ages), value=length(ages)*log(1/(K-min(ages))), hessian=-Inf )
+  else
+    thetaMLE = optim(theta,UNaltloglik,ages=ages,sds=eps.sigma,K=K,method="Brent",lower=min(theta*c(0,2)),upper=max(theta*c(0,2)),control=list(trace=TRUE,fnscale=-1),hessian=TRUE)
+  return(thetaMLE)
+}
+
 
 getLRTalt = function(theta0,thetaMLE,ages, sds, K, alpha=0.05)
 {
@@ -148,6 +187,26 @@ getUNci = function(theta, ages, sds, K, alpha=0.05, B=100, u=matrix(runif(B*leng
   return( list( theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root), B=c(lower=B,point=B,upper=B), se=SE) )
 }
 
+getUNciAlt = function(theta, ages, sds, K, alpha=0.05, wald=FALSE )
+{
+  thetaMLE = getThetaAlt(ages, theta, sds, K)
+  SE=NULL
+  if(wald==TRUE)
+  {
+    SE = 1/sqrt(-thetaMLE$hessian)
+    lo = list( root=thetaMLE$par - qnorm(1-alpha/2) * SE )
+    hi = list( root=thetaMLE$par + qnorm(1-alpha/2) * SE )
+  }
+  else
+  {
+    lo = try( uniroot(getLRTalt,thetaMLE$par*c(0.25,1),thetaMLE,alpha=alpha, ages=ages,sd=sds,K=K,extendInt="downX") )
+    if(inherits(lo,"try-error")) lo=list(root=thetaMLE$par)
+    hi = try( uniroot(getLRTalt,thetaMLE$par*c(1,1.25),thetaMLE,alpha=alpha, ages=ages,sd=sds,K=K,extendInt="upX") )
+    if(inherits(hi,"try-error")) hi=list(root=thetaMLE$par)
+  }
+  return( list( theta=c(lower=lo$root,point=thetaMLE$par,upper=hi$root), B=c(lower=NA,point=NA,upper=NA), se=SE) )
+}
+
 do.test = FALSE
 if (do.test)
 {
@@ -165,7 +224,7 @@ UNaltloglik(theta,ages,sds,K)
 B=100  
 u=matrix(runif(B*length(ages)),ncol=B)
 thetaMLE=getTheta(ages,theta,sds,K,u=u)
-thetaaltMLE=getTheta(ages,theta,sds,K,u=u,method="alt")
+thetaaltMLE=getThetaAlt(ages,theta,sds,K)
 
 print(getUNci(theta,ages,sds,K,u=u))
 
@@ -196,6 +255,5 @@ abline(h=0,col="red")
 abline(v=thetaaltMLE$par,col="red")
 print(min(LRs))
 
-rUN(10000,10000,sds,25000)
-
+rUN(10000,25000,sds,1000)
 }

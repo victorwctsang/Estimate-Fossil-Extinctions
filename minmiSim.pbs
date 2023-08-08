@@ -6,7 +6,7 @@
 #PBS -j oe
 #PBS -M David.Warton@unsw.edu.au
 #PBS -m ae
-#PBS -J 0-124
+#PBS -J 0-49
 
 module add nlopt/2.7.0
 module add gcc/12.2.0
@@ -15,4 +15,4 @@ module add r/4.3.0
 
 cd fossils
 
-Rscript -e "whichSims = as.numeric(Sys.getenv('PBS_ARRAY_INDEX'))*40+(1:40); source('doSims.R'); do.sim(whichSims,date='20230714')"
+Rscript -e "whichSims = as.numeric(Sys.getenv('PBS_ARRAY_INDEX'))*100+(1:100); source('doSims.R'); do.sim(whichSims,date='20230808')"
