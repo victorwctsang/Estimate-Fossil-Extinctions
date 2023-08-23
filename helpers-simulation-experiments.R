@@ -59,46 +59,13 @@ simulate_datasets = function (config) {
     error_factor = rep(config$error_factor, length.out = df.length)
   )
   
-  W = lapply(dataset.df$error_factor, 
-             function(e) simulate_dataset(theta.true = config$theta.true,
-                                          K = config$K,
-                                          eps.mean = config$dating_error.mean,
-                                          eps.sigma = e * config$fossil.sd,
-                                          n = config$n.samples))
-  
-  dataset.df$W = W
-  return(dataset.df)
-}
-
-simulate_dataset = function (theta.true,
-                             K,
-                             eps.mean,
-                             eps.sigma,
-                             n) {
-  
-  eps = eps.mean
-  if (any(eps.sigma != 0)) {
-    eps = extraDistr::rtnorm(n, mean = eps.mean, sd = eps.sigma, a=-Inf, b=(K-theta.true))
-  }
-  X = runif(n, min = theta.true, max = K-eps)
-  
-  W = X + eps
-  return(W)
-}
-
-simulate_datasets = function (config) {
-  df.length = config$n.trials * config$n.error_factors
-  
-  dataset.df = data.frame(
-    error_factor = rep(config$error_factor, length.out = df.length)
-  )
-  
   if(config$method=="reginv")
   {
     W = lapply(dataset.df$error_factor, 
                function(e) rfossil(n = config$n.samples, theta = config$theta.true,
                                             K = config$K,
-                                            sd = e * config$fossil.sd
+                                            sd = e * config$fossil.sd,
+                                            df = config$df
                                             ))
   }
   else
@@ -163,33 +130,47 @@ estimate_conf_int = function (W,
       alpha = alpha,
       K = K
     ),
-    reginvUNci = do_reginvUNci(ages = W,
+    UNci = do_reginvUNci(ages = W,
                    sd = sd,
                    alpha = alpha,
                    K = K,
                    wald=FALSE
     ),
-    reginvUNwald = do_reginvUNci(ages = W,
+    UNwald = do_reginvUNci(ages = W,
                                sd = sd,
                                alpha = alpha,
                                K = K,
                                wald=TRUE
     ),
-    UNci = do_UNci(theta.true,
+    UTci = do_reginvUNci(ages = W,
+                               sd = sd,
+                               alpha = alpha,
+                               K = K,
+                               df = 4,
+                               wald=FALSE
+    ),
+    UTwald = do_reginvUNci(ages = W,
+                                 sd = sd,
+                                 alpha = alpha,
+                                 K = K,
+                                 df = 4,
+                                 wald=TRUE
+    ),
+    oldUNci = do_UNci(theta.true,
       ages = W,
       sd = sd,
       alpha = alpha,
       K = K,
       wald=FALSE
     ),
-    UNwald = do_UNci(theta.true,
+    oldUNwald = do_UNci(theta.true,
                    ages = W,
                    sd = sd,
                    alpha = alpha,
                    K = K,
                    wald=TRUE
     ),
-    UNciA = do_UNci(theta.true,
+    oldUNciA = do_UNci(theta.true,
                    ages = W,
                    sd = sd,
                    alpha = alpha,
@@ -197,7 +178,7 @@ estimate_conf_int = function (W,
                    wald=FALSE,
                    alt=TRUE
     ),
-    UNwaldA = do_UNci(theta.true,
+    oldUNwaldA = do_UNci(theta.true,
                      ages = W,
                      sd = sd,
                      alpha = alpha,
@@ -205,10 +186,33 @@ estimate_conf_int = function (W,
                      wald=TRUE,
                      alt=TRUE
     ),
-    mlereginv = do_reginv(ages=W,
+    reginv = do_reginv(ages=W,
                           sd=sd,
                           alpha=alpha,
                           K=K),
+    reginvUT = do_reginv(ages=W,
+                          sd=sd,
+                          alpha=alpha,
+                          K=K,
+                          df=4),
+    reginvUT2 = do_reginv(ages=W,
+                       sd=sd,
+                       alpha=alpha,
+                       K=K,
+                       df=4,
+                       method="rq2"),
+    reginvUTW = do_reginv(ages=W,
+                        sd=sd,
+                        alpha=alpha,
+                        K=K,
+                        df=4,
+                        method="wrq"),
+    reginvUTP = do_reginv(ages=W,
+                          sd=sd,
+                          alpha=alpha,
+                          K=K,
+                          df=4,
+                          method="prob"),
     mleInv = do_mleInv(ages = W,
                      sd = sd,
                      alpha = alpha,
@@ -404,15 +408,15 @@ do_mleInvAlt = function(ages, sd, K, alpha, iterMax=1000, method="rq")
   )
 }
 
-do_reginv = function(ages, sd, K, alpha, iterMax=1000)
+do_reginv = function(ages, sd, K, df=NULL, alpha, method="rq", iterMax=1000)
 {
   pt.start_time = Sys.time()
-  ft.mle = mle_fossil(ages=ages, sd=sd, K=K,alpha=NULL)
+  ft.mle = mle_fossil(ages=ages, sd=sd, K=K, df=df, alpha=NULL)
   pt.runtime = calculate_tdiff(pt.start_time, Sys.time())
   
   ci.start_time = Sys.time()
   
-  fts = reginv_fossil(ages,sd,K,q=c(alpha/2,1-alpha/2),iterMax=iterMax)
+  fts = reginv_fossil(ages,sd,K,df=df,q=c(alpha/2,1-alpha/2),method=method,iterMax=iterMax)
   ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
   return(
     list(
@@ -428,12 +432,12 @@ do_reginv = function(ages, sd, K, alpha, iterMax=1000)
   )
 }
 
-do_reginvUNci = function (ages, sd, K, alpha, wald=wald) {
+do_reginvUNci = function (ages, sd, K, df=NULL, alpha, wald=wald) {
   start_time = Sys.time()
   
   results = tryCatch(
     {
-      mle_fossil(ages, sd, K, alpha=alpha, wald=wald)
+      mle_fossil(ages, sd, K, df=df, alpha=alpha, wald=wald)
     },
     error = function(cond) {
       message("Something went wrong with `mle_fossil`:")

@@ -19,7 +19,8 @@ synthetic.data.config <- list(
   n.samples = 60,
   error_factors = c(0, 0.5, 1, 2, 4, 8),
   dating_error.mean = 0,
-  method="reginv"
+  method="reginv",
+  df=4
 )
 
 SYNTH_DATA_PATH = paste0("data/synthetic-data-", synthetic.data.config$n.samples, "-", format(Sys.Date(), "%Y%m%d"), ".RData")

@@ -18,9 +18,13 @@ PerformminmiSimulations = function(whichSims,datasets,synthetic.data.config,alph
 ),
 methods.conf_int = c(
   "MINMI"
-  ,"mlereginv"
-  ,"reginvUNci"
-  ,"reginvUNwald"
+  ,"UNci"
+  ,"UTci"
+  ,"UNwald"
+  ,"UTwald"
+  ,"reginv"
+  ,"reginvUT"
+  ,"reginvUTP"
 #  , "UNciA"
 #  , "UNwaldA"
 #  , "mleInvA"

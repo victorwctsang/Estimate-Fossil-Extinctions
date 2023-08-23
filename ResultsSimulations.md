@@ -1,7 +1,7 @@
 Simulation Results
 ================
 Victor Tsang
-08 August, 2023
+22 August, 2023
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
@@ -43,29 +43,29 @@ library(gridExtra)
 library(latex2exp)
 
 
-load("data/synthetic-data-24-20230808.RData")
+load("data/synthetic-data-36-20230822.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-24-20230808.RData'
+RESULTS_PATH <- 'data/simResults-36-20230822.RData'
 load(RESULTS_PATH)
 
 head(results)
 ```
 
     ##   which_sim n.samples error_factor       method     lower    point    upper
-    ## 1         1        24          0.0        MINMI  8854.023 10161.96 10431.94
-    ## 2         1        24          0.0    mlereginv  8798.163       NA 10429.64
-    ## 3         1        24          0.0   reginvUNci  9645.661 10442.03 10442.03
-    ## 4         1        24          0.0 reginvUNwald 10442.030 10442.03 10442.03
-    ## 5         2        24          0.5        MINMI  8849.419 10158.06 10461.70
-    ## 6         2        24          0.5    mlereginv  8687.795       NA 10446.43
+    ## 1         1        36            0        MINMI  9141.477 10008.49 10192.13
+    ## 2         1        36            0    mlereginv  9087.341       NA 10191.99
+    ## 3         1        36            0   reginvUNci 10199.029 10199.03 10199.03
+    ## 4         1        36            0 reginvUNwald 10199.029 10199.03 10199.03
+    ## 5         1        36            0  mlereginvUT  9145.007       NA 10191.37
+    ## 6         1        36            0   reginvUTci 10199.029 10199.03 10199.03
     ##   point_runtime conf_int_runtime B.lower B.point B.upper
-    ## 1  0.0003247261     3.247261e-04      NA      NA      NA
-    ## 2  0.0001287460     1.849224e+01      NA      NA      NA
-    ## 3  0.0000000000     1.747608e-03      NA      NA      NA
-    ## 4  0.0000000000     1.733303e-04      NA      NA      NA
-    ## 5  0.0539743900     5.397439e-02     100     100     100
-    ## 6  0.0010674000     2.136510e+01      NA      NA      NA
+    ## 1  9.727478e-05     9.727478e-05      NA      NA      NA
+    ## 2  6.103516e-05     8.233516e+00      NA      NA      NA
+    ## 3  0.000000e+00     8.862019e-04      NA      NA      NA
+    ## 4  0.000000e+00     1.087189e-04      NA      NA      NA
+    ## 5  5.841255e-05     8.422576e+00      NA      NA      NA
+    ## 6  0.000000e+00     8.594990e-04      NA      NA      NA
 
 ``` r
 results %>%
@@ -78,21 +78,21 @@ results %>%
     ## `summarise()` has grouped output by 'method'. You can override using the
     ## `.groups` argument.
 
-    ## # A tibble: 24 × 5
-    ## # Groups:   method [4]
+    ## # A tibble: 42 × 5
+    ## # Groups:   method [7]
     ##    method    error_factor point.pct_na lower.pct_na upper.pct_na
     ##    <chr>            <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 MINMI              0         10134.        8822.       10405.
-    ##  2 MINMI              0.5       10117.        8804.       10423.
-    ##  3 MINMI              1         10129.        8817.       10501.
-    ##  4 MINMI              2         10069.        8740.       10595.
-    ##  5 MINMI              4         10049.        8639.       10888.
-    ##  6 MINMI              8          9908.        8173.       11345.
-    ##  7 mlereginv          0           NaN         8825.       10404.
-    ##  8 mlereginv          0.5         NaN         8803.       10423.
-    ##  9 mlereginv          1           NaN         8822.       10499.
-    ## 10 mlereginv          2           NaN         8742.       10583.
-    ## # … with 14 more rows
+    ##  1 MINMI              0         10073.        9211.       10255.
+    ##  2 MINMI              0.5       10039.        9174.       10265.
+    ##  3 MINMI              1          9909.        9032.       10210.
+    ##  4 MINMI              2          9590.        8664.       10052.
+    ##  5 MINMI              4          7722.        6526.        8516.
+    ##  6 MINMI              8          -533.       -2735.         970.
+    ##  7 mlereginv          0           NaN         9210.       10255.
+    ##  8 mlereginv          0.5         NaN         9175.       10265.
+    ##  9 mlereginv          1           NaN         9040.       10208.
+    ## 10 mlereginv          2           NaN         8680.       10038.
+    ## # ℹ 32 more rows
 
 # Point Estimates
 
@@ -126,56 +126,66 @@ for (i in 1:length(error_factors)) {
 performance.point.tbl[[1]]
 ```
 
-    ## # A tibble: 3 × 6
+    ## # A tibble: 5 × 6
     ##   error_factor method       MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI            198   134          181      0.0001
-    ## 2            0 reginvUNci       342   415          170      0     
-    ## 3            0 reginvUNwald     342   415          170      0
+    ## 1            0 MINMI             76    73           70     0.00009
+    ## 2            0 reginvUNci       136   262           68     0      
+    ## 3            0 reginvUNwald     136   262           68     0      
+    ## 4            0 reginvUTci       136   262           68     0      
+    ## 5            0 reginvUTwald     136   262           68     0
 
 ``` r
 performance.point.tbl[[2]]
 ```
 
-    ## # A tibble: 3 × 6
+    ## # A tibble: 5 × 6
     ##   error_factor method       MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 MINMI            181   117          167      0.0445
-    ## 2          0.5 reginvUNci       261   319          159    108.    
-    ## 3          0.5 reginvUNwald     261   319          159    108.
+    ## 1          0.5 reginvUTci       193   171          164    108.    
+    ## 2          0.5 reginvUTwald     193   171          164    108.    
+    ## 3          0.5 MINMI            198    39          197      0.0628
+    ## 4          0.5 reginvUNci       216   161          190     93.9   
+    ## 5          0.5 reginvUNwald     216   161          190     93.9
 
 ``` r
 performance.point.tbl[[3]]
 ```
 
-    ## # A tibble: 3 × 6
+    ## # A tibble: 5 × 6
     ##   error_factor method       MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 MINMI            178   129          162      0.0474
-    ## 2            1 reginvUNci       241   294          155    169.    
-    ## 3            1 reginvUNwald     241   294          155    169.
+    ## 1            1 reginvUTci       517    69          512    154.    
+    ## 2            1 reginvUTwald     517    69          512    154.    
+    ## 3            1 reginvUNci      2407    10         2409    148.    
+    ## 4            1 reginvUNwald    2407    10         2409    148.    
+    ## 5            1 MINMI           2497   -91         2492      0.0675
 
 ``` r
 performance.point.tbl[[4]]
 ```
 
-    ## # A tibble: 3 × 6
+    ## # A tibble: 5 × 6
     ##   error_factor method       MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 MINMI            191    69          187      0.0541
-    ## 2            2 reginvUNci       221   206          179    264.    
-    ## 3            2 reginvUNwald     221   206          179    264.
+    ## 1            2 reginvUTci      2245  -142         2227    248.    
+    ## 2            2 reginvUTwald    2245  -142         2227    248.    
+    ## 3            2 reginvUNci      3897  -308         3806    236.    
+    ## 4            2 reginvUNwald    3897  -308         3806    236.    
+    ## 5            2 MINMI           4086  -410         3922      0.0770
 
 ``` r
 performance.point.tbl[[5]]
 ```
 
-    ## # A tibble: 3 × 6
+    ## # A tibble: 5 × 6
     ##   error_factor method       MSE_000  bias variance_000 avg_runtime
     ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 MINMI            293    49          291      0.0589
-    ## 2            4 reginvUNci       298   181          265    410.    
-    ## 3            4 reginvUNwald     298   181          265    410.
+    ## 1            4 reginvUTci      4024  -321         3925    448.    
+    ## 2            4 reginvUTwald    4024  -321         3925    448.    
+    ## 3            4 reginvUNci    652239 -2072       648629    388.    
+    ## 4            4 reginvUNwald  652239 -2072       648629    388.    
+    ## 5            4 MINMI         676628 -2278       672145      0.0785
 
 #### Pivot to make plots
 
@@ -187,21 +197,21 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
-    ## # A tibble: 72 × 4
+    ## # A tibble: 120 × 4
     ## # Groups:   Error [6]
-    ##    Error Method       Metric     value
-    ##    <dbl> <chr>        <chr>      <dbl>
-    ##  1     0 MINMI        MSE_000 198.    
-    ##  2     0 MINMI        Bias    134.    
-    ##  3     0 MINMI        Var_000 181.    
-    ##  4     0 MINMI        Runtime   0.0001
-    ##  5     0 reginvUNci   MSE_000 342.    
-    ##  6     0 reginvUNci   Bias    415.    
-    ##  7     0 reginvUNci   Var_000 170.    
-    ##  8     0 reginvUNci   Runtime   0     
-    ##  9     0 reginvUNwald MSE_000 342.    
-    ## 10     0 reginvUNwald Bias    415.    
-    ## # … with 62 more rows
+    ##    Error Method       Metric      value
+    ##    <dbl> <chr>        <chr>       <dbl>
+    ##  1     0 MINMI        MSE_000  75.6    
+    ##  2     0 MINMI        Bias     72.6    
+    ##  3     0 MINMI        Var_000  70.4    
+    ##  4     0 MINMI        Runtime   0.00009
+    ##  5     0 reginvUNci   MSE_000 136.     
+    ##  6     0 reginvUNci   Bias    262.     
+    ##  7     0 reginvUNci   Var_000  67.8    
+    ##  8     0 reginvUNci   Runtime   0      
+    ##  9     0 reginvUNwald MSE_000 136.     
+    ## 10     0 reginvUNwald Bias    262.     
+    ## # ℹ 110 more rows
 
 ### Plots
 
@@ -225,6 +235,9 @@ performance.point_estimates.plots = lapply(metrics,
                                     "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInvAW" = "pink"))
     
     if (met %in% c("MSE", "Runtime")) {
@@ -335,20 +348,20 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
-    ## # A tibble: 72 × 4
-    ##    Error Method Metric       value
-    ##    <dbl> <chr>  <chr>        <dbl>
-    ##  1   0   MINMI  Coverage   94.5   
-    ##  2   0   MINMI  Width    1582.    
-    ##  3   0   MINMI  Runtime     0.0001
-    ##  4   0.5 MINMI  Coverage   95.4   
-    ##  5   0.5 MINMI  Width    1619.    
-    ##  6   0.5 MINMI  Runtime     0.0445
-    ##  7   1   MINMI  Coverage   95.6   
-    ##  8   1   MINMI  Width    1683.    
-    ##  9   1   MINMI  Runtime     0.0474
-    ## 10   2   MINMI  Coverage   95     
-    ## # … with 62 more rows
+    ## # A tibble: 126 × 4
+    ##    Error Method Metric        value
+    ##    <dbl> <chr>  <chr>         <dbl>
+    ##  1   0   MINMI  Coverage   95.3    
+    ##  2   0   MINMI  Width    1044.     
+    ##  3   0   MINMI  Runtime     0.00009
+    ##  4   0.5 MINMI  Coverage   89.4    
+    ##  5   0.5 MINMI  Width    1091.     
+    ##  6   0.5 MINMI  Runtime     0.0628 
+    ##  7   1   MINMI  Coverage   85.8    
+    ##  8   1   MINMI  Width    1178.     
+    ##  9   1   MINMI  Runtime     0.0675 
+    ## 10   2   MINMI  Coverage   79.7    
+    ## # ℹ 116 more rows
 
 ## Coverage Probability
 
@@ -366,6 +379,9 @@ conf_int.coverage.plot <- performance.CI.long %>%
   scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38",                                     "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInvAW" = "pink"))
 ```
 
@@ -375,7 +391,7 @@ conf_int.coverage.plot <- performance.CI.long %>%
 conf_int.coverage.plot
 ```
 
-    ## Warning: ggrepel: 7 unlabeled data points (too many overlaps). Consider
+    ## Warning: ggrepel: 19 unlabeled data points (too many overlaps). Consider
     ## increasing max.overlaps
 
 ![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
@@ -395,6 +411,9 @@ conf_int.width.plot <- performance.CI.long %>%
                                                                     "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInvAW" = "pink"))
 ```
 
@@ -422,6 +441,9 @@ conf_int.runtime.plot <- performance.CI.long %>%
                                                                     "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInvAW" = "pink"))
 ```
 

@@ -43,7 +43,7 @@ library(latex2exp)
 load("data/synthetic-data-12-20230808.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-12-20230808.RData'
+RESULTS_PATH <- 'data/simResults-12-20230821.RData'
 load(RESULTS_PATH)
 
 head(results)
@@ -55,7 +55,7 @@ n.samples=c(12,24,36,48,60)
 #n.samples=c(12,24,36,48)
 for (iSample in 1:length(n.samples))
 {
-  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230808.RData")
+  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230821.RData")
   load(RESULTS_PATH)
   all_results=tibble::add_row(
       all_results,
@@ -148,6 +148,9 @@ performance.point_estimates.plots = lapply(metrics,
                                     "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
                                     "mleInvAW" = "pink"))
@@ -226,6 +229,9 @@ conf_int.coverage.plot <- performance.CI.long %>%
                                 "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
                                     "mleInvAW" = "pink"))
@@ -249,6 +255,9 @@ conf_int.width.plot <- performance.CI.long %>%
                                 "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
                                     "mleInvAW" = "pink"))
@@ -273,6 +282,9 @@ conf_int.runtime.plot <- performance.CI.long %>%
                                 "reginvUNci" = "darkblue",
                                     "reginvUNwald" = "red",
                                     "mlereginv" = "purple",
+                                    "reginvUTci" = "lightblue",
+                                    "reginvUTwald" = "pink",
+                                    "mlereginvUT" = "plum",
                                     "mleInv2" = "plum",
                                     "mleInvP"="orchid",
                                     "mleInvAW" = "pink"))
