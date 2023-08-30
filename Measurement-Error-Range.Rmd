@@ -10,126 +10,124 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
+
+Task: summarise the data we have, average measurement error sd (as a percentage of interval length (K-theta)) and sample size.
+
+We use the fossil data provided by Cooper. Data in the excel sheet:
+
+
 ```{r}
-fossildata[[2]][!is.na(fossildata[[2]][, 2]),]
-```
-
-
-Task: Find out what is a typical Measurement Error variation (standard deviation) as a proportion of fossil range ($K - \theta$)
-
-We use the fossil data provided by Cooper. First define the variables (by hand) for pulling the data from the sheet.
-
-```{r fossildata}
 library(readxl)
 library(tidyverse)
 
-sheets <- c("ArcSimAL",
-  "BisPriscus.ext",
-  "BisonXEur.ext+inv",
-  "CervusElaEBer",
-  "Coelod.ant.Brit",
-  "Coelod.ant.Russ",
-  "Coelod.ant.Wrang",
-  "CrocCroc.Eur",
-  "EquusCabEBer",
-  "EquusFraEBer",
-  "MammothEurCladeIII",
-  "MammothPrimEBer",
-  "Mammoths Eurasian",
-  "MastodonNA",
-  "Megaloceros",
-  "NeandertalEur",
-  "OvibosMos",
-  "Paleolox.Japan",
-  "Panth.leo.spe.Ber.Ext",
-  "Panth.leo.spe.NW.ext",
-  "Panth.leo.spe.OW.ext",
-  "Saiga.tat.EBer",
-  "Saiga.tat.Ger",
-  "Ursus.spe.Ger2.ext",
-  "Ursus.spe.Eur.ext")
+# Define a list of named vectors where each vector contains the sheet name and cell range
+sheet_data <- list(
+  "ArcSimAL" = "M4:N18",
+  "BisPriscus.ext" = "M4:N14",
+  "BisonPriscus.Inv" = "M4:N14", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "BisonXEur.ext+inv" = "M12:N23", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "CervusElaEBer" = "M4:N58",
+  "Coelod.ant.Brit" = "M4:N28",
+  "Coelod.ant.Russ" = "M4:N196",
+  "Coelod.ant.Wrang" = "M4:N10",
+  "CrocCroc.Eur" = "M4:N80",
+  "EquusCabEBer" = "M4:N26", # TODO There is one more row (Row 27) that is highlighted in yellow and not included here.
+  "EquusFraEBer" = "M5:N22", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
+  "MammothEurCladeI" = "M4:N11",
+  "MammothEurCladeIII" = "M4:N20",
+  "MammothPrimEBer" = "M4:N35",
+  # Mammoths NA Fig 2 # This is to do with a figure.
+  "Mammoths Eurasian" = "M4:N204",
+  "MastodonNA" = "K4:L23",
+  "Megaloceros" = "M4:N47",
+  "NeandertalEur" = "M4:N146",
+  "OvibosMos" = "M4:N7",
+  "Paleolox.Japan" = "M4:N12",
+  "Panth.leo.spe.Ber.Ext" = "M5:N11", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
+  "Pant.leo.spe.Ber.Inv" = "M4:N21", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "Panth.leo.spe.NW.ext" = "M4:N23", # TODO There is one more row (Row 24) that is highlighted in yellow and not included here.
+  "Panth.leo.spe.OW.ext" = "M4:N18",
+  "Saiga.tat.EBer" = "M4:N9", # TODO There is one more row (Row 10) that is highlighted in yellow.
+  "Saiga.tat.Ger" = "M4:N8", # TODO There is one more row (Row 10) that is highlighted in yellow.
+  "Ursus.spe.Ger2.ext" = "M5:N16", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
+  "Ursus.spe.Ger1.inv" = "M4:N10", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "Ursus.spe.Eur.ext" = "M4:N32",
+  "Ursus.arctos.EBer.inv" = "M4:N20"
+)
 
-ranges <- c("M3:N19",
-  "M3:N15",
-  "M4:N9",
-  "M3:N59",
-  "M3:N29",
-  "M3:N197",
-  "M3:N11",
-  "M3:N81",
-  "M3:N28",
-  "M3:N23",
-  "M3:N21",
-  "M3:N36",
-  "M3:N205",
-  "K4:L24",
-  "M3:N48",
-  "M3:N147",
-  "M3:N8",
-  "M3:N13",
-  "M3:N12",
-  "M3:N25",
-  "M3:N19",
-  "M3:N11",
-  "M3:N10",
-  "M3:N17",
-  "M3:N33")
+# Initialize an empty list to store dataframes
+dfs <- list()
 
-sheet_ranges <- cbind(sheets, ranges)
-print(sheet_ranges)
+# Loop through each sheet and read data into dataframes
+for (sheet_name in names(sheet_data)) {
+  range <- sheet_data[[sheet_name]]
+  
+  df <- read_excel(path='fossildata.xlsx', sheet = sheet_name, range = range, col_names = c('age', 'sd'))
+  df$source <- sheet_name
+  
+  # Calculate the number of records and store it as a column
+  df$n <- nrow(df)
+  
+  # Calculate the age range (max age - min age) for each dataframe
+  df$age_range <- max(df$age) - min(df$age)
+  
+  # Add a new column for sd as a proportion of the age range
+  df$sd_proportion <- df$sd / df$age_range
+  
+  # Store the dataframe in the list
+  dfs[[sheet_name]] <- df
+}
+
+# Combine all dataframes into one
+final_df <- bind_rows(dfs)
+
+# Reset row names
+rownames(final_df) <- NULL
+
+# View the final dataframe
+print(final_df)
 ```
 
-Next, read the excel file
 
-```{r}
-
-data <- lapply(1:nrow(sheet_ranges), function(i) {
-  sheet_name <- sheet_ranges[i, "sheets"]
-  cell_range <- sheet_ranges[i, "ranges"]
-  
-  # Read the specified cell range from the sheet
-  sheet_data <- read_excel(path='fossildata.xlsx', sheet = sheet_name, range = cell_range, col_names = c('age', 'sd'))
-  
-  # Add a column for the sheet name, K, theta_hat, range, and sd_prop_range:
-  sheet_data <- sheet_data %>%
-    filter(!is.na(age) & !is.na(sd)) %>%
-    mutate(sheet = sheet_name,
-           K = max(age),
-           theta_hat = min(age),
-           range = K - theta_hat,
-           sd_prop_range = sd / range)
-  
-  return(sheet_data)
-})
-
-# Combine all the data frames into a single dataframe
-df <- do.call(rbind, data)
-
-head(df)
-```
-
+## Explore
 Inspect the measurement error variation (sd) as a proportion of fossil record range.
 
 ```{r}
-hist(df$sd_prop_range)
+summary(final_df)
 ```
 
 ```{r}
-summary(df$sd_prop_range)
+final_df %>%
+  group_by(source) %>%
+  summarise(
+    AverageMsmtErrorSD = mean(sd),
+    AverageMsmtErrorSDProp = mean(sd_proportion),
+    IntervalLength = max(age) - min(age),
+    SampleSize = n()
+  )
 ```
 
-```{r, fig.height=4}
-df %>%
-  ggplot(aes(x = sheet, y = sd_prop_range)) +
+
+```{r}
+hist(final_df$sd_proportion)
+```
+
+
+
+```{r, fig.height=8, fig.width=4}
+final_df %>%
+  ggplot(aes(x = source, y = sd_proportion)) +
   geom_violin() +
-  labs(x = "Sheet", y = "sd_prop_range") +
+  labs(x = "Source", y = "sd_proportion") +
   theme_bw() +
   coord_flip()
 ```
 
 
-## Conclusion
-
-Generally speaking, standard deviation is a very small proportion of range. The median proportion is **3.5%**. The 75th percentile is **7.8%**. We have a very right skewed distribution (huge lengths of time and our measurement error is small relative to that.)
-
-This is an argument for `MLE Inversion` and to a lesser extent `minmi` (regularity conditions aside). This is also an argument **against** Solow's method, which performs poorly in small measurement error scenarios.
+```{r}
+final_df %>%
+  ggplot(aes(y = sd_proportion)) +
+  geom_boxplot() +
+  theme_bw() +
+  coord_flip()
+```
