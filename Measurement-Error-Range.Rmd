@@ -24,15 +24,11 @@ library(tidyverse)
 sheet_data <- list(
   "ArcSimAL" = "M4:N18",
   "BisPriscus.ext" = "M4:N14",
-  "BisonPriscus.Inv" = "M4:N14", # TODO Double check if this should be included (i believe this is invasion not extinction)
-  "BisonXEur.ext+inv" = "M12:N23", # TODO Double check if this should be included (i believe this is invasion not extinction)
   "CervusElaEBer" = "M4:N58",
   "Coelod.ant.Brit" = "M4:N28",
   "Coelod.ant.Russ" = "M4:N196",
   "Coelod.ant.Wrang" = "M4:N10",
   "CrocCroc.Eur" = "M4:N80",
-  "EquusCabEBer" = "M4:N26", # TODO There is one more row (Row 27) that is highlighted in yellow and not included here.
-  "EquusFraEBer" = "M5:N22", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
   "MammothEurCladeI" = "M4:N11",
   "MammothEurCladeIII" = "M4:N20",
   "MammothPrimEBer" = "M4:N35",
@@ -42,17 +38,21 @@ sheet_data <- list(
   "Megaloceros" = "M4:N47",
   "NeandertalEur" = "M4:N146",
   "OvibosMos" = "M4:N7",
-  "Paleolox.Japan" = "M4:N12",
+  "EquusCabEBer" = "M4:N26", # TODO There is one more row (Row 27) that is highlighted in yellow and not included here.
+  "EquusFraEBer" = "M5:N22", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
   "Panth.leo.spe.Ber.Ext" = "M5:N11", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
-  "Pant.leo.spe.Ber.Inv" = "M4:N21", # TODO Double check if this should be included (i believe this is invasion not extinction)
   "Panth.leo.spe.NW.ext" = "M4:N23", # TODO There is one more row (Row 24) that is highlighted in yellow and not included here.
-  "Panth.leo.spe.OW.ext" = "M4:N18",
   "Saiga.tat.EBer" = "M4:N9", # TODO There is one more row (Row 10) that is highlighted in yellow.
   "Saiga.tat.Ger" = "M4:N8", # TODO There is one more row (Row 10) that is highlighted in yellow.
+  "Paleolox.Japan" = "M4:N12",
+  "Panth.leo.spe.OW.ext" = "M4:N18",
+  "Ursus.spe.Eur.ext" = "M4:N32",
+  "Ursus.arctos.EBer.inv" = "M4:N20",
   "Ursus.spe.Ger2.ext" = "M5:N16", # TODO There is one more row (Row 4) that is highlighted in yellow and not included here.
   "Ursus.spe.Ger1.inv" = "M4:N10", # TODO Double check if this should be included (i believe this is invasion not extinction)
-  "Ursus.spe.Eur.ext" = "M4:N32",
-  "Ursus.arctos.EBer.inv" = "M4:N20"
+  "BisonPriscus.Inv" = "M4:N14", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "BisonXEur.ext+inv" = "M12:N23", # TODO Double check if this should be included (i believe this is invasion not extinction)
+  "Pant.leo.spe.Ber.Inv" = "M4:N21" # TODO Double check if this should be included (i believe this is invasion not extinction)
 )
 
 # Initialize an empty list to store dataframes
@@ -131,3 +131,23 @@ final_df %>%
   theme_bw() +
   coord_flip()
 ```
+
+```{r}
+final_df %>%
+  group_by(source) %>%
+  summarise(n = max(n)) %>%
+  ggplot(aes(x=n, y=source)) +
+  geom_col()
+```
+
+```{r}
+final_df %>%
+  group_by(source) %>%
+  summarise(n = max(n), median_sd_prop = median(sd_proportion)) %>%
+  ggplot(aes(x=n, y=median_sd_prop)) +
+  geom_point() +
+  scale_y_log10() +
+  scale_x_log10() +
+  ggtitle("Median SD Prop vs. n")
+```
+
