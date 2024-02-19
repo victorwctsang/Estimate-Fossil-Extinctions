@@ -1,14 +1,20 @@
 Simulation Results
 ================
-Victor Tsang
-22 August, 2023
+David Warton and Victor Tsang
+27 September, 2023
 
 - <a href="#tldr" id="toc-tldr">TL;DR</a>
 - <a href="#point-estimates" id="toc-point-estimates">Point Estimates</a>
+  - <a href="#show-point-estimation-metrics-for-key-methods"
+    id="toc-show-point-estimation-metrics-for-key-methods">Show point
+    estimation metrics for key methods</a>
   - <a href="#plots" id="toc-plots">Plots</a>
   - <a href="#commentary" id="toc-commentary">Commentary</a>
 - <a href="#confidence-intervals" id="toc-confidence-intervals">Confidence
   Intervals</a>
+  - <a href="#show-ci-metrics-for-key-methods"
+    id="toc-show-ci-metrics-for-key-methods">Show CI metrics for key
+    methods</a>
   - <a href="#coverage-probability" id="toc-coverage-probability">Coverage
     Probability</a>
   - <a href="#widths" id="toc-widths">Widths</a>
@@ -43,29 +49,29 @@ library(gridExtra)
 library(latex2exp)
 
 
-load("data/synthetic-data-36-20230822.RData")
+load("data/synthetic-data-6-20230901.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-36-20230822.RData'
+RESULTS_PATH <- 'data/simResults-6-20230926.RData'
 load(RESULTS_PATH)
 
 head(results)
 ```
 
-    ##   which_sim n.samples error_factor       method     lower    point    upper
-    ## 1         1        36            0        MINMI  9141.477 10008.49 10192.13
-    ## 2         1        36            0    mlereginv  9087.341       NA 10191.99
-    ## 3         1        36            0   reginvUNci 10199.029 10199.03 10199.03
-    ## 4         1        36            0 reginvUNwald 10199.029 10199.03 10199.03
-    ## 5         1        36            0  mlereginvUT  9145.007       NA 10191.37
-    ## 6         1        36            0   reginvUTci 10199.029 10199.03 10199.03
+    ##   which_sim n.samples error_factor  method    lower     point    upper
+    ## 1         1         6            0  BA-MLE       NA  8728.782       NA
+    ## 2         1         6            0 Strauss       NA  8521.504       NA
+    ## 3         1         6            0   GRIWM 5517.000  5517.000  5517.00
+    ## 4         1         6            0    U0ci 6693.891 10338.956 10338.96
+    ## 5         1         6            0    UNci 6693.891 10338.956 10338.96
+    ## 6         1         6            0    UTci 6693.891 10338.956 10338.96
     ##   point_runtime conf_int_runtime B.lower B.point B.upper
-    ## 1  9.727478e-05     9.727478e-05      NA      NA      NA
-    ## 2  6.103516e-05     8.233516e+00      NA      NA      NA
-    ## 3  0.000000e+00     8.862019e-04      NA      NA      NA
-    ## 4  0.000000e+00     1.087189e-04      NA      NA      NA
-    ## 5  5.841255e-05     8.422576e+00      NA      NA      NA
-    ## 6  0.000000e+00     8.594990e-04      NA      NA      NA
+    ## 1  0.0001630783               NA      NA      NA      NA
+    ## 2  0.0019938946               NA      NA      NA      NA
+    ## 3  0.9487740993      0.948774099      NA      NA      NA
+    ## 4  0.0000000000      0.003574848      NA      NA      NA
+    ## 5  0.0000000000      0.001688957      NA      NA      NA
+    ## 6  0.0000000000      0.001697302      NA      NA      NA
 
 ``` r
 results %>%
@@ -78,21 +84,21 @@ results %>%
     ## `summarise()` has grouped output by 'method'. You can override using the
     ## `.groups` argument.
 
-    ## # A tibble: 42 × 5
-    ## # Groups:   method [7]
-    ##    method    error_factor point.pct_na lower.pct_na upper.pct_na
-    ##    <chr>            <dbl>        <dbl>        <dbl>        <dbl>
-    ##  1 MINMI              0         10073.        9211.       10255.
-    ##  2 MINMI              0.5       10039.        9174.       10265.
-    ##  3 MINMI              1          9909.        9032.       10210.
-    ##  4 MINMI              2          9590.        8664.       10052.
-    ##  5 MINMI              4          7722.        6526.        8516.
-    ##  6 MINMI              8          -533.       -2735.         970.
-    ##  7 mlereginv          0           NaN         9210.       10255.
-    ##  8 mlereginv          0.5         NaN         9175.       10265.
-    ##  9 mlereginv          1           NaN         9040.       10208.
-    ## 10 mlereginv          2           NaN         8680.       10038.
-    ## # ℹ 32 more rows
+    ## # A tibble: 117 × 5
+    ## # Groups:   method [13]
+    ##    method error_factor point.pct_na lower.pct_na upper.pct_na
+    ##    <chr>         <dbl>        <dbl>        <dbl>        <dbl>
+    ##  1 BA-MLE          0         10053.         NaN          NaN 
+    ##  2 BA-MLE          0.5       10008.         NaN          NaN 
+    ##  3 BA-MLE          1          9905.         NaN          NaN 
+    ##  4 BA-MLE          2          9985.         NaN          NaN 
+    ##  5 BA-MLE          4          9954.         NaN          NaN 
+    ##  6 BA-MLE          8          9633.         NaN          NaN 
+    ##  7 BA-MLE         16          8936.         NaN          NaN 
+    ##  8 BA-MLE         32          6015.         NaN          NaN 
+    ##  9 BA-MLE         64          -875.         NaN          NaN 
+    ## 10 GRIWM           0          7219.        7219.        7219.
+    ## # ℹ 107 more rows
 
 # Point Estimates
 
@@ -100,7 +106,7 @@ results %>%
 
 ``` r
 performance.point <- results %>%
-  filter(!is.na(point)) %>%
+  filter(!is.na(point),method%in%c("BA-MLE","Strauss","UNci","UT4ci","UTci","UTbias")) %>%
   group_by(error_factor, method) %>%
   summarise(MSE_000 = mean((point - theta.true)^2,na.rm=TRUE)/1000,
             bias = mean(point,na.rm=TRUE)-theta.true,
@@ -126,66 +132,127 @@ for (i in 1:length(error_factors)) {
 performance.point.tbl[[1]]
 ```
 
-    ## # A tibble: 5 × 6
-    ##   error_factor method       MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            0 MINMI             76    73           70     0.00009
-    ## 2            0 reginvUNci       136   262           68     0      
-    ## 3            0 reginvUNwald     136   262           68     0      
-    ## 4            0 reginvUTci       136   262           68     0      
-    ## 5            0 reginvUTwald     136   262           68     0
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            0 BA-MLE     2224    53         2223     0.00019
+    ## 2            0 UTbias     2224    54         2223     2.04   
+    ## 3            0 Strauss    2282    51         2281     0.00025
+    ## 4            0 UNci       3805  1474         1633     0      
+    ## 5            0 UT4ci      3805  1474         1633     0      
+    ## 6            0 UTci       3805  1474         1633     0
 
 ``` r
 performance.point.tbl[[2]]
 ```
 
-    ## # A tibble: 5 × 6
-    ##   error_factor method       MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1          0.5 reginvUTci       193   171          164    108.    
-    ## 2          0.5 reginvUTwald     193   171          164    108.    
-    ## 3          0.5 MINMI            198    39          197      0.0628
-    ## 4          0.5 reginvUNci       216   161          190     93.9   
-    ## 5          0.5 reginvUNwald     216   161          190     93.9
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1          0.5 BA-MLE     2170     8         2172     0.00016
+    ## 2          0.5 UTbias     2172    10         2174     7.00   
+    ## 3          0.5 Strauss    2190     4         2192     0.00021
+    ## 4          0.5 UT4ci      3319  1307         1612   242.     
+    ## 5          0.5 UNci       3358  1325         1605   179.     
+    ## 6          0.5 UTci       3358  1325         1605   179.
 
 ``` r
 performance.point.tbl[[3]]
 ```
 
-    ## # A tibble: 5 × 6
-    ##   error_factor method       MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            1 reginvUTci       517    69          512    154.    
-    ## 2            1 reginvUTwald     517    69          512    154.    
-    ## 3            1 reginvUNci      2407    10         2409    148.    
-    ## 4            1 reginvUNwald    2407    10         2409    148.    
-    ## 5            1 MINMI           2497   -91         2492      0.0675
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            1 BA-MLE     1913   -95         1906     0.00017
+    ## 2            1 UTbias     1914   -91         1908     6.68   
+    ## 3            1 Strauss    1937   -83         1932     0.00021
+    ## 4            1 UT4ci      2730  1142         1427   337.     
+    ## 5            1 UNci       2756  1157         1419   273.     
+    ## 6            1 UTci       2756  1157         1419   273.
 
 ``` r
 performance.point.tbl[[4]]
 ```
 
-    ## # A tibble: 5 × 6
-    ##   error_factor method       MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            2 reginvUTci      2245  -142         2227    248.    
-    ## 2            2 reginvUTwald    2245  -142         2227    248.    
-    ## 3            2 reginvUNci      3897  -308         3806    236.    
-    ## 4            2 reginvUNwald    3897  -308         3806    236.    
-    ## 5            2 MINMI           4086  -410         3922      0.0770
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            2 BA-MLE     2223   -15         2225     0.00016
+    ## 2            2 UTbias     2234    -3         2236     6.79   
+    ## 3            2 Strauss    2277   -17         2279     0.00022
+    ## 4            2 UT4ci      2906  1103         1690   476.     
+    ## 5            2 UNci       2911  1109         1682   421.     
+    ## 6            2 UTci       2911  1109         1682   421.
 
 ``` r
 performance.point.tbl[[5]]
 ```
 
-    ## # A tibble: 5 × 6
-    ##   error_factor method       MSE_000  bias variance_000 avg_runtime
-    ##          <dbl> <chr>          <dbl> <dbl>        <dbl>       <dbl>
-    ## 1            4 reginvUTci      4024  -321         3925    448.    
-    ## 2            4 reginvUTwald    4024  -321         3925    448.    
-    ## 3            4 reginvUNci    652239 -2072       648629    388.    
-    ## 4            4 reginvUNwald  652239 -2072       648629    388.    
-    ## 5            4 MINMI         676628 -2278       672145      0.0785
+    ## # A tibble: 6 × 6
+    ##   error_factor method  MSE_000  bias variance_000 avg_runtime
+    ##          <dbl> <chr>     <dbl> <dbl>        <dbl>       <dbl>
+    ## 1            4 BA-MLE     2404   -46         2404     0.00022
+    ## 2            4 UTbias     2440     7         2443     8.03   
+    ## 3            4 Strauss    2481   -41         2482     0.00024
+    ## 4            4 UNci       2788   945         1898   666.     
+    ## 5            4 UTci       2788   945         1898   667.     
+    ## 6            4 UT4ci      2810   955         1900   699.
+
+## Show point estimation metrics for key methods
+
+``` r
+performance.point%>%filter(method=="BA-MLE")
+```
+
+    ## # A tibble: 9 × 6
+    ## # Groups:   error_factor [9]
+    ##   error_factor method MSE_000      bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl>     <dbl>        <dbl>       <dbl>
+    ## 1          0   BA-MLE   2224.     53.3         2223.     0.00019
+    ## 2          0.5 BA-MLE   2170.      8.06        2172.     0.00016
+    ## 3          1   BA-MLE   1913.    -94.9         1906.     0.00017
+    ## 4          2   BA-MLE   2223.    -14.9         2225.     0.00016
+    ## 5          4   BA-MLE   2404.    -45.6         2404.     0.00022
+    ## 6          8   BA-MLE   3599.   -367.          3468.     0.00018
+    ## 7         16   BA-MLE   8214.  -1064.          7090.     0.00015
+    ## 8         32   BA-MLE  49184.  -3985.         33338.     0.00015
+    ## 9         64   BA-MLE 225016. -10875.        106857.     0.00018
+
+``` r
+performance.point%>%filter(method=="UTci")
+```
+
+    ## # A tibble: 9 × 6
+    ## # Groups:   error_factor [9]
+    ##   error_factor method MSE_000   bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl>  <dbl>        <dbl>       <dbl>
+    ## 1          0   UTci     3805.  1474.        1633.          0 
+    ## 2          0.5 UTci     3358.  1325.        1605.        179.
+    ## 3          1   UTci     2756.  1157.        1419.        273.
+    ## 4          2   UTci     2911.  1109.        1682.        421.
+    ## 5          4   UTci     2788.   945.        1898.        667.
+    ## 6          8   UTci     3173.   589.        2828.       1076.
+    ## 7         16   UTci     6690.   289.        6613.       1778.
+    ## 8         32   UTci    32716.  -611.       32374.       3338.
+    ## 9         64   UTci   108700. -1581.      106306.       6743.
+
+``` r
+performance.point%>%filter(method=="UTbias")
+```
+
+    ## # A tibble: 9 × 6
+    ## # Groups:   error_factor [9]
+    ##   error_factor method MSE_000     bias variance_000 avg_runtime
+    ##          <dbl> <chr>    <dbl>    <dbl>        <dbl>       <dbl>
+    ## 1          0   UTbias   2224.    53.8         2223.        2.04
+    ## 2          0.5 UTbias   2172.     9.66        2174.        7.00
+    ## 3          1   UTbias   1914.   -90.9         1908.        6.68
+    ## 4          2   UTbias   2234.    -2.81        2236.        6.79
+    ## 5          4   UTbias   2440.     6.75        2443.        8.03
+    ## 6          8   UTbias   3540.  -166.          3516.        7.98
+    ## 7         16   UTbias   8016.  -342.          7907.        6.41
+    ## 8         32   UTbias  41482. -1240.         39983.        7.17
+    ## 9         64   UTbias 134756. -2127.        130362.        7.53
 
 #### Pivot to make plots
 
@@ -197,23 +264,23 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
-    ## # A tibble: 120 × 4
-    ## # Groups:   Error [6]
-    ##    Error Method       Metric      value
-    ##    <dbl> <chr>        <chr>       <dbl>
-    ##  1     0 MINMI        MSE_000  75.6    
-    ##  2     0 MINMI        Bias     72.6    
-    ##  3     0 MINMI        Var_000  70.4    
-    ##  4     0 MINMI        Runtime   0.00009
-    ##  5     0 reginvUNci   MSE_000 136.     
-    ##  6     0 reginvUNci   Bias    262.     
-    ##  7     0 reginvUNci   Var_000  67.8    
-    ##  8     0 reginvUNci   Runtime   0      
-    ##  9     0 reginvUNwald MSE_000 136.     
-    ## 10     0 reginvUNwald Bias    262.     
-    ## # ℹ 110 more rows
+    ## # A tibble: 216 × 4
+    ## # Groups:   Error [9]
+    ##    Error Method  Metric       value
+    ##    <dbl> <chr>   <chr>        <dbl>
+    ##  1     0 BA-MLE  MSE_000 2224.     
+    ##  2     0 BA-MLE  Bias      53.3    
+    ##  3     0 BA-MLE  Var_000 2223.     
+    ##  4     0 BA-MLE  Runtime    0.00019
+    ##  5     0 Strauss MSE_000 2282.     
+    ##  6     0 Strauss Bias      50.9    
+    ##  7     0 Strauss Var_000 2281.     
+    ##  8     0 Strauss Runtime    0.00025
+    ##  9     0 UNci    MSE_000 3805.     
+    ## 10     0 UNci    Bias    1474.     
+    ## # ℹ 206 more rows
 
-### Plots
+## Plots
 
 ``` r
 metrics = unique(performance.point.long$Metric)
@@ -226,19 +293,11 @@ performance.point_estimates.plots = lapply(metrics,
       theme_bw() +
       labs(title = paste(met, "by Error"), ylab=NULL, colour = "Method") +
       theme(rect = element_rect(fill = "transparent")) +
-      scale_color_manual(values = c("MINMI" = "#00BA38",
-                                    "MLE" = "#619CFF",
-                                    "BA-MLE" = "purple",
-                                    "Strauss" = "orange",
-                                    "GRIWM-corrected" = "darkgray",
-                                    "GRIWM" = "maroon",
-                                    "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInvAW" = "pink"))
+      scale_color_manual(values = c("UNci" = "blue",
+                                    "U0ci" = "forestgreen",
+                                    "UTbias" = "plum",
+                                    "UTci" = "purple"
+                                    ))
     
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
@@ -255,19 +314,19 @@ performance.point_estimates.plots[[4]] = performance.point_estimates.plots[[4]] 
 performance.point_estimates.plots[[1]]
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 performance.point_estimates.plots[[2]]
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
 
 ``` r
 performance.point_estimates.plots[[3]]
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-6-3.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->
 
 ``` r
 performance.point_estimates.plots[[4]]
@@ -276,7 +335,7 @@ performance.point_estimates.plots[[4]]
     ## Warning: Transformation introduced infinite values in continuous y-axis
     ## Transformation introduced infinite values in continuous y-axis
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-6-4.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->
 
 ## Commentary
 
@@ -304,7 +363,7 @@ performance.point_estimates.plot.grid = do.call(grid.arrange, performance.point_
     ## Warning: Transformation introduced infinite values in continuous y-axis
     ## Transformation introduced infinite values in continuous y-axis
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 performance.point_estimates.plot.grid
@@ -323,14 +382,13 @@ performance.point_estimates.plot.grid
 
 ``` r
 performance.CI <- results %>%
-  filter(!is.na(conf_int_runtime)) %>%
+  filter(!is.na(conf_int_runtime),method%in%c("UTwald","UT4ci","UTci","reginvU0","reginv","reginvUT")) %>%
   mutate(width = upper - lower,
          contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
-#         contains_theta = ifelse(theta.true > lower, 1, 0)) %>%
-#         contains_theta = ifelse(theta.true < upper, 1, 0)) %>%
   group_by(error_factor, method) %>%
   summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
             `Average Width` = round(mean(width, na.rm=TRUE), 2),
+            `Trim Width` = mean(width, trim=0.05, na.rm=TRUE),
             `Average Runtime` = round(mean(conf_int_runtime, na.rm=TRUE), 5)) %>%
   ungroup() %>%
   arrange(method, error_factor)
@@ -348,20 +406,65 @@ performance.CI.long <- performance.CI %>%
 performance.CI.long
 ```
 
-    ## # A tibble: 126 × 4
-    ##    Error Method Metric        value
-    ##    <dbl> <chr>  <chr>         <dbl>
-    ##  1   0   MINMI  Coverage   95.3    
-    ##  2   0   MINMI  Width    1044.     
-    ##  3   0   MINMI  Runtime     0.00009
-    ##  4   0.5 MINMI  Coverage   89.4    
-    ##  5   0.5 MINMI  Width    1091.     
-    ##  6   0.5 MINMI  Runtime     0.0628 
-    ##  7   1   MINMI  Coverage   85.8    
-    ##  8   1   MINMI  Width    1178.     
-    ##  9   1   MINMI  Runtime     0.0675 
-    ## 10   2   MINMI  Coverage   79.7    
-    ## # ℹ 116 more rows
+    ## # A tibble: 162 × 5
+    ##    Error Method `Trim Width` Metric     value
+    ##    <dbl> <chr>         <dbl> <chr>      <dbl>
+    ##  1   0   reginv        7196. Coverage   94.4 
+    ##  2   0   reginv        7196. Width    7424.  
+    ##  3   0   reginv        7196. Runtime     7.33
+    ##  4   0.5 reginv        7230. Coverage   94.7 
+    ##  5   0.5 reginv        7230. Width    7388.  
+    ##  6   0.5 reginv        7230. Runtime    16.2 
+    ##  7   1   reginv        7324. Coverage   95.4 
+    ##  8   1   reginv        7324. Width    7706.  
+    ##  9   1   reginv        7324. Runtime    15.7 
+    ## 10   2   reginv        7504. Coverage   94.2 
+    ## # ℹ 152 more rows
+
+## Show CI metrics for key methods
+
+``` r
+performance.CI%>%filter(method=="UT4ci")
+```
+
+    ## # A tibble: 9 × 6
+    ##   error_factor method Coverage `Average Width` `Trim Width` `Average Runtime`
+    ##          <dbl> <chr>     <dbl>           <dbl>        <dbl>             <dbl>
+    ## 1          0   UT4ci      84.4           3217.        3261.           0.00145
+    ## 2          0.5 UT4ci      86.7           3538.        3583.           0.00213
+    ## 3          1   UT4ci      89.2           3806.        3843.           0.00194
+    ## 4          2   UT4ci      88             4197.        4235.           0.00196
+    ## 5          4   UT4ci      90.1           4985.        5013.           0.00258
+    ## 6          8   UT4ci      93.2           6650.        6592.           0.00222
+    ## 7         16   UT4ci      93.3          10914.        9653.           0.00172
+    ## 8         32   UT4ci      93.7          26630.       24274.           0.00199
+    ## 9         64   UT4ci      96.3          62643.       58287.           0.00249
+
+``` r
+performance.CI%>%filter(method%in%c("UTci","reginvUT"))
+```
+
+    ## # A tibble: 18 × 6
+    ##    error_factor method   Coverage `Average Width` `Trim Width` `Average Runtime`
+    ##           <dbl> <chr>       <dbl>           <dbl>        <dbl>             <dbl>
+    ##  1          0   reginvUT     94.5         7.49e 3        7217.           7.28   
+    ##  2          0.5 reginvUT     94           7.82e 3        7175.          16.2    
+    ##  3          1   reginvUT     95.2         7.49e 3        7320.          15.7    
+    ##  4          2   reginvUT     94.8         7.59e 3        7473.          15.5    
+    ##  5          4   reginvUT     95.4         8.31e 3        8208.          18.2    
+    ##  6          8   reginvUT     97.6         1.08e 4       10782.          18.3    
+    ##  7         16   reginvUT     96.5         1.79e 4       17392.          12.7    
+    ##  8         32   reginvUT     95.8         4.60e15       20800.          12.8    
+    ##  9         64   reginvUT     93.2         1.35e15       29301.          13.7    
+    ## 10          0   UTci         84.4         3.22e 3        3261.           0.00146
+    ## 11          0.5 UTci         86           3.48e 3        3522.           0.0272 
+    ## 12          1   UTci         88.8         3.73e 3        3766.           0.0269 
+    ## 13          2   UTci         87.6         4.11e 3        4147.           0.0276 
+    ## 14          4   UTci         89.3         5.53e 3        4949.           0.0332 
+    ## 15          8   UTci         93.1         1.66e 4        6572.           0.0302 
+    ## 16         16   UTci         93.7         1.96e 5       75815.           0.0261 
+    ## 17         32   UTci         94.6         1.12e 6      985646.           0.0401 
+    ## 18         64   UTci         95.6         3.55e 6     3438255.           0.0656
 
 ## Coverage Probability
 
@@ -373,28 +476,30 @@ conf_int.coverage.plot <- performance.CI.long %>%
   geom_line(linewidth=0.5) +
   geom_label_repel(aes(label = value)) +
   theme_bw() +
+  ylim(60,100) +
   labs(y = "Years", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38",                                     "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInvAW" = "pink"))
+      scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
+
+    ## Scale for 'y' is already present. Adding another scale for 'y', which will
+    ## replace the existing scale.
 
 ``` r
 conf_int.coverage.plot
 ```
 
-    ## Warning: ggrepel: 19 unlabeled data points (too many overlaps). Consider
+    ## Warning: ggrepel: 34 unlabeled data points (too many overlaps). Consider
     ## increasing max.overlaps
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Widths
 
@@ -407,14 +512,11 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38",
-                                                                    "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInvAW" = "pink"))
+      scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -423,7 +525,7 @@ conf_int.width.plot <- performance.CI.long %>%
 conf_int.width.plot
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ## Runtime
 
@@ -437,14 +539,11 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
-                                                                    "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInvAW" = "pink"))
+      scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 ```
 
     ## Warning: Ignoring unknown parameters: linewidth
@@ -453,7 +552,7 @@ conf_int.runtime.plot <- performance.CI.long %>%
 conf_int.runtime.plot
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ## Commentary
 
@@ -483,7 +582,7 @@ tibble(index = 1:n.samples, pct_sigma_sampling) %>%
   scale_y_continuous(labels = percent_format())
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 tibble(index = 1:n.samples, pct_sigma_sampling) %>%
@@ -492,7 +591,7 @@ tibble(index = 1:n.samples, pct_sigma_sampling) %>%
   scale_x_continuous(labels = percent_format())
 ```
 
-![](ResultsSimulations_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Under
 ![4\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;4%5Csigma "4\sigma")
@@ -505,12 +604,12 @@ Perhaps these cause problems?
 #### Extra bonus: is the sampling distribution of MLE Gaussian for ![\sigma\>0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csigma%3E0 "\sigma>0")?
 
 ``` r
-errors=unique(results$error_factor)
+errors=sort(unique(results$error_factor))
 nError=length(errors)
 par(mfrow=c(5,3),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
 for(iError in 1:nError)
 {
-  tmp=results%>%filter(method=="reginvUNci" & error_factor==errors[iError]) %>% select(lower,point,upper)
+  tmp=results%>%filter(method=="UTci" & error_factor==errors[iError]) %>% select(lower,point,upper)
   hist(tmp$lower,xlab="theta_lower",ylab="",main="")
   mtext(paste0("error_fac=",errors[iError]),2,line=2,font=2,cex=0.8)
   if(iError==1)
@@ -539,11 +638,11 @@ nError=length(errors)
 par(mfrow=c(3,2),mgp=c(1.75,0.75,0),mar=c(3,2,0,0),oma=c(0,2,2,0))
 for(iError in 1:nError)
 {
-  tmp=results%>%filter(method=="reginvUNwald" & error_factor==errors[iError]) %>% select(point,point_runtime)
+  tmp=results%>%filter(method=="UTwald" & error_factor==errors[iError]) %>% select(point,point_runtime)
   nError=length(errors)
   hist(tmp$point_runtime,xlab="SE",ylab="",main="")
   abline(v=sd(tmp$point),col="red")
 }
 ```
 
-![](ResultsSimulations_files/figure-gfm/waldSE-1.png)<!-- -->
+![](ResultsSimulations_files/figure-gfm/waldSE-1.png)<!-- -->![](ResultsSimulations_files/figure-gfm/waldSE-2.png)<!-- -->

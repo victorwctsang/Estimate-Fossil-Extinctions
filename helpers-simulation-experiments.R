@@ -1,8 +1,7 @@
-#source("MLEinversion.R")
 library(reginv)
 
 library(readxl)
-#source("GRIWM.R")
+source("GRIWM.R")
 
 getFossilData = function (path, sheet, range, col_names, col_types) {
   read_excel(path, sheet, range, col_names, col_types)
@@ -53,16 +52,14 @@ simulate_dataset = function (theta.true,
 }
 
 simulate_datasets = function (config) {
-  df.length = config$n.trials * config$n.error_factors
-  
   dataset.df = data.frame(
-    error_factor = rep(config$error_factor, length.out = df.length)
+    error_factor = rep(config$error_factor, each=config$n.trials)
   )
   
   if(config$method=="reginv")
   {
     W = lapply(dataset.df$error_factor, 
-               function(e) rfossil(n = config$n.samples, theta = config$theta.true,
+               function(e) rcutt(n = config$n.samples, theta = config$theta.true,
                                             K = config$K,
                                             sd = e * config$fossil.sd,
                                             df = config$df
@@ -130,11 +127,22 @@ estimate_conf_int = function (W,
       alpha = alpha,
       K = K
     ),
+    UTbias = do_reginv(ages=W,
+                       sd=sd,
+                       K=K,
+                       df=NULL,
+                       method="lm"),
     UNci = do_reginvUNci(ages = W,
                    sd = sd,
                    alpha = alpha,
                    K = K,
                    wald=FALSE
+    ),
+    U0ci = do_reginvUNci(ages = W,
+                         sd = 0,
+                         alpha = alpha,
+                         K = K,
+                         wald=FALSE
     ),
     UNwald = do_reginvUNci(ages = W,
                                sd = sd,
@@ -142,14 +150,28 @@ estimate_conf_int = function (W,
                                K = K,
                                wald=TRUE
     ),
+    UT4ci = do_reginvUNci(ages = W,
+                         sd = sd,
+                         alpha = alpha,
+                         K = K,
+                         df = 4,
+                         wald=FALSE
+    ),
     UTci = do_reginvUNci(ages = W,
-                               sd = sd,
-                               alpha = alpha,
-                               K = K,
-                               df = 4,
-                               wald=FALSE
+                         sd = sd,
+                         alpha = alpha,
+                         K = K,
+                         df = NULL,
+                         wald=FALSE
     ),
     UTwald = do_reginvUNci(ages = W,
+                          sd = sd,
+                          alpha = alpha,
+                          K = K,
+                          df = NULL,
+                          wald=TRUE
+    ),
+    UT4wald = do_reginvUNci(ages = W,
                                  sd = sd,
                                  alpha = alpha,
                                  K = K,
@@ -190,7 +212,16 @@ estimate_conf_int = function (W,
                           sd=sd,
                           alpha=alpha,
                           K=K),
+    reginvU0 = do_reginv(ages=W,
+                        sd=0,
+                        alpha=alpha,
+                        K=K),
     reginvUT = do_reginv(ages=W,
+                         sd=sd,
+                         alpha=alpha,
+                         K=K,
+                         df=NULL),
+    reginvUT4 = do_reginv(ages=W,
                           sd=sd,
                           alpha=alpha,
                           K=K,
@@ -411,17 +442,24 @@ do_mleInvAlt = function(ages, sd, K, alpha, iterMax=1000, method="rq")
 do_reginv = function(ages, sd, K, df=NULL, alpha, method="rq", iterMax=1000)
 {
   pt.start_time = Sys.time()
-  ft.mle = mle_fossil(ages=ages, sd=sd, K=K, df=df, alpha=NULL)
+  ft.mle = mle_cutt(ages=ages, sd=sd, K=K, df=df, alpha=NULL)
   pt.runtime = calculate_tdiff(pt.start_time, Sys.time())
   
   ci.start_time = Sys.time()
   
-  fts = reginv_fossil(ages,sd,K,df=df,q=c(alpha/2,1-alpha/2),method=method,iterMax=iterMax)
+  fts = reginv_cutt(ages,sd,K,df=df,q=c(alpha/2,1-alpha/2),method=method,iterMax=iterMax)
   ci.runtime = calculate_tdiff(ci.start_time, Sys.time())
+  if(method=="lm") #to return as point estimate not some CI thing
+  {
+    ft.mle$theta = fts$theta
+    fts$theta=c(NA,NA)
+    pt.runtime = ci.runtime
+  }
+  
   return(
     list(
       lower = fts$theta[1],
-      point = ft.mle$mle,
+      point = ft.mle$theta,
       upper = fts$theta[2],
       point_runtime = pt.runtime,
       conf_int_runtime = ci.runtime,
@@ -432,15 +470,14 @@ do_reginv = function(ages, sd, K, df=NULL, alpha, method="rq", iterMax=1000)
   )
 }
 
-do_reginvUNci = function (ages, sd, K, df=NULL, alpha, wald=wald) {
+do_reginvUNci = function (ages, sd, K, df=Inf, alpha, wald=wald) {
   start_time = Sys.time()
   
-  results = tryCatch(
-    {
-      mle_fossil(ages, sd, K, df=df, alpha=alpha, wald=wald)
-    },
+     results = tryCatch(
+        mle_cutt(ages, sd, K, df=df, alpha=alpha, wald=wald)
+    ,
     error = function(cond) {
-      message("Something went wrong with `mle_fossil`:")
+      message("Something went wrong with `mle_cutt`:")
       message(cond)
       return(list())
     }
@@ -448,9 +485,9 @@ do_reginvUNci = function (ages, sd, K, df=NULL, alpha, wald=wald) {
   runtime = calculate_tdiff(start_time, Sys.time())
   return(
     list(
-      lower = as.numeric(results$theta["lower"]),
-      point = as.numeric(results$theta["mle"]),
-      upper = as.numeric(results$theta["upper"]),
+      lower = as.numeric(results$ci[1]),
+      point = as.numeric(results$theta),
+      upper = as.numeric(results$ci[2]),
       point_runtime = results$se,
       conf_int_runtime = runtime,
       B.lower = NA,

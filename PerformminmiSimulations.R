@@ -12,24 +12,23 @@ source('helpers-simulation-experiments.R')
 
 PerformminmiSimulations = function(whichSims,datasets,synthetic.data.config,alpha=0.05,
                                    methods.point_estimates = c(
-  # "Strauss"
-  # ,"MLE"
-  # ,"BA-MLE"
+                                     "BA-MLE",
+                                     "Strauss"
+#   ,"MLE"
 ),
 methods.conf_int = c(
-  "MINMI"
-  ,"UNci"
-  ,"UTci"
-  ,"UNwald"
-  ,"UTwald"
-  ,"reginv"
-  ,"reginvUT"
-  ,"reginvUTP"
-#  , "UNciA"
-#  , "UNwaldA"
-#  , "mleInvA"
-#  , "mleInvAW"
-  # ,"GRIWM"
+  "GRIWM",
+  "U0ci",
+  "UNci",
+  "UTci",
+  "UT4ci",
+  "UTbias",
+  "UT4wald",
+  "UTwald",
+  "reginvU0",
+  "reginv",
+  "reginvUT"
+#  "reginvUT4"
   # ,"GRIWM-corrected"
 )
 )
@@ -68,7 +67,6 @@ for (i in whichSims) {
   iter = datasets[i, ]
   W = as.numeric(iter$W[[1]])
   sd = as.numeric(iter$error_factor * synthetic.data.config$fossil.sd)
-  
   log_info("Getting point estimates")
   for (method in methods.point_estimates) {
     estimation = estimate_extinction(

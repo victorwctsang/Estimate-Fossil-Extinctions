@@ -12,12 +12,12 @@ options(nwarnings = 10000)
 
 # Configure synthetic data generation
 synthetic.data.config <- list(
-  seed = 60,
+  seed = 12,
   theta.true = 10000,
   K = 20000,
   n.trials = 1000,
-  n.samples = 60,
-  error_factors = c(0, 0.5, 1, 2, 4, 8),
+  n.samples = 96,
+  error_factors = c(0, 0.5, 1, 2, 4, 8, 16, 32, 64),
   dating_error.mean = 0,
   method="reginv",
   df=4

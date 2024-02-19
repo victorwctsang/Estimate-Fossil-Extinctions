@@ -24,7 +24,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### Which value of `error_factor` do we want plots for?
 ```{r whichError}
-error_fac_to_plot = 1 #change this value to look at plots for a different error_factor
+error_fac_to_plot = 64 #change this value to look at plots for a different error_factor
+```
+
+#### Which sim run do we want plots for?
+```{r whichDate}
+whichDate = "20230926" #change this value to date of sim run
 ```
 
 ---
@@ -40,10 +45,10 @@ library(gridExtra)
 library(latex2exp)
 
 
-load("data/synthetic-data-12-20230808.RData")
+load("data/synthetic-data-6-20230901.RData")
 attach(synthetic.data.config)
 
-RESULTS_PATH <- 'data/simResults-12-20230821.RData'
+RESULTS_PATH <- paste0('data/simResults-6-',whichDate,'.RData')
 load(RESULTS_PATH)
 
 head(results)
@@ -51,11 +56,10 @@ all_results=results
 all_results$n.samples = synthetic.data.config$n.samples
 all_results=all_results[0,]
 
-n.samples=c(12,24,36,48,60)
-#n.samples=c(12,24,36,48)
+n.samples=c(6,9,12,18,24,36,48,72,96)
 for (iSample in 1:length(n.samples))
 {
-  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-20230821.RData")
+  RESULTS_PATH <- paste0("data/simResults-",n.samples[iSample],"-",whichDate,".RData")
   load(RESULTS_PATH)
   all_results=tibble::add_row(
       all_results,
@@ -88,7 +92,7 @@ all_results %>%
 
 ```{r}
 performance.point <- all_results %>%
-  filter(!is.na(point)) %>% filter(error_factor == error_fac_to_plot) %>%
+  filter(!is.na(point),method%in%c("BA-MLE","U0ci","UNci","UTci","UTbias","UT4ci"),error_factor == error_fac_to_plot) %>%
   group_by(method, n.samples) %>%
   summarise(MSE_000 = mean((point - theta.true)^2,na.rm=TRUE)/1000,
             bias = mean(point,na.rm=TRUE)-theta.true,
@@ -126,7 +130,14 @@ performance.point.long <- performance.point %>%
 performance.point.long
 ```
 
-### Plots
+## Show point estimation metrics for key methods
+```{r}
+performance.point%>%filter(method=="BA-MLE")
+performance.point%>%filter(method=="UTci")
+performance.point%>%filter(method=="UTbias")
+```
+
+## Plots
 
 ```{r}
 metrics = unique(performance.point.long$Metric)
@@ -137,24 +148,13 @@ performance.point_estimates.plots = lapply(metrics,
       geom_line() +
       geom_point() +
       theme_bw() +
-      labs(title = paste(met, "by Error"), ylab=NULL, colour = "Method") +
+      labs(title = paste(met, "by Sample Size"), ylab=NULL, colour = "Method") +
       theme(rect = element_rect(fill = "transparent")) +
-      scale_color_manual(values = c("MINMI" = "#00BA38",
-                                    "MLE" = "#619CFF",
-                                    "BA-MLE" = "purple",
-                                    "Strauss" = "orange",
-                                    "GRIWM-corrected" = "darkgray",
-                                    "GRIWM" = "maroon",
-                                    "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInv2" = "plum",
-                                    "mleInvP"="orchid",
-                                    "mleInvAW" = "pink"))
-    
+      scale_color_manual(values = c("UNci" = "blue",
+                                    "U0ci" = "forestgreen",
+                                    "UTbias" = "plum",
+                                    "UTci" = "purple"
+                                    ))
     if (met %in% c("MSE", "Runtime")) {
       p = p+scale_y_log10(labels = label_comma())
     }
@@ -194,13 +194,14 @@ performance.point_estimates.plot.grid
 
 ```{r}
 performance.CI <- all_results %>%
-  filter(!is.na(conf_int_runtime)) %>% filter(error_factor == error_fac_to_plot) %>%
+  filter(!is.na(conf_int_runtime), method%in%c("UTwald","UTci","reginvU0","reginv","reginvUT","UT4ci","UT4wald"), error_factor == error_fac_to_plot) %>%
   mutate(width = upper - lower,
          contains_theta = ifelse(theta.true > lower & theta.true < upper, 1, 0)) %>%
   group_by(n.samples, method) %>%
-  summarise(Coverage = round(mean(contains_theta, na.rm=TRUE) * 100, 1),
-            `Average Width` = round(mean(width, na.rm=TRUE), 2),
-            `Average Runtime` = round(mean(conf_int_runtime, na.rm=TRUE), 5)) %>%
+  summarise(Coverage = mean(contains_theta, na.rm=TRUE) * 100,
+            `Average Width` = mean(width, na.rm=TRUE),
+            `Trimmed Mean Width` = mean(width, trim=0.05, na.rm=TRUE),
+            `Average Runtime` = mean(conf_int_runtime, na.rm=TRUE)) %>%
   ungroup() %>%
   arrange(method, n.samples)
 
@@ -210,6 +211,12 @@ performance.CI.long <- performance.CI %>%
                names_to = "Metric")
   
 performance.CI.long
+```
+
+## Show CI metrics for key methods
+```{r}
+performance.CI%>%filter(method%in%c("UTci","UT4ci"))
+performance.CI%>%filter(method=="reginvUT")
 ```
 
 ## Coverage Probability
@@ -225,18 +232,11 @@ conf_int.coverage.plot <- performance.CI.long %>%
   labs(y = "Coverage probability", colour="Method", title="Coverage Probabilities") +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 95, 100)) +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
-                                "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInv2" = "plum",
-                                    "mleInvP"="orchid",
-                                    "mleInvAW" = "pink"))
-    
-
+      scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 conf_int.coverage.plot
 ```
 
@@ -251,17 +251,11 @@ conf_int.width.plot <- performance.CI.long %>%
   theme_bw() +
   labs(y = "Years", colour="Method", title="Average Width of Estimated Confidence Intervals") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
-                                "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInv2" = "plum",
-                                    "mleInvP"="orchid",
-                                    "mleInvAW" = "pink"))
-    
+       scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 
 conf_int.width.plot
 ```
@@ -278,18 +272,11 @@ conf_int.runtime.plot <- performance.CI.long %>%
   scale_y_continuous(trans=scales::log10_trans()) +
   labs(y = "Seconds", colour="Method", title="Average Runtime of Confidence Interval Estimation") +
   theme(rect = element_rect(fill = "transparent")) +
-  scale_color_manual(values = c("GRIWM" = "#F8766D", "GRIWM-corrected" = "#619CFF", "MINMI" = "#00BA38", 
-                                "reginvUNci" = "darkblue",
-                                    "reginvUNwald" = "red",
-                                    "mlereginv" = "purple",
-                                    "reginvUTci" = "lightblue",
-                                    "reginvUTwald" = "pink",
-                                    "mlereginvUT" = "plum",
-                                    "mleInv2" = "plum",
-                                    "mleInvP"="orchid",
-                                    "mleInvAW" = "pink"))
-    
-
+       scale_color_manual(values = c("UTci" = "purple",
+                                    "UTwald" = "pink",
+                                    "reginv" = "blue",
+                                    "reginvUT" = "plum",
+                                    "reginvU0" = "forestgreen"))
 conf_int.runtime.plot
 ```
 

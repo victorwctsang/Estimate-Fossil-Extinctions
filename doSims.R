@@ -1,6 +1,6 @@
 source("PerformminmiSimulations.R")
 
-do.sim = function(whichSims,nSamp=c(12,24,36,48,60),date)
+do.sim = function(whichSims,nSamp=c(6,9,12,18,24,36,48,72,96),date)
 {
   for(iSamp in nSamp)
   {
@@ -10,5 +10,5 @@ do.sim = function(whichSims,nSamp=c(12,24,36,48,60),date)
     PerformminmiSimulations(whichSims,datasets,synthetic.data.config)
   }
 }
-#whichSims=5901:5910
-#system.time(do.sim(whichSims, nSamp=48,date="20230823"))
+whichSims=8001:8005
+system.time(do.sim(whichSims, nSamp=c(6), date="20230901"))
